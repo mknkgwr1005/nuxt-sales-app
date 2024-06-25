@@ -13,7 +13,7 @@ export const firebaseConfig = {
   storageBucket: "vue-sales-app.appspot.com",
   messagingSenderId: "361515311633",
   appId: "1:361515311633:web:f38ad24c83a273917f47b0",
-  measurementId: "G-Z5M5CC40K1",
+  measurementId: "G-Z5M5CC40K1", //test
 };
 
 // // Initialize Firebase
