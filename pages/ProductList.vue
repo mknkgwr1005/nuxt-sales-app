@@ -26,17 +26,19 @@
       >
         <v-card class="mb-3" :title="product.name">
           <v-img
-            v-for="image of product.image"
-            :key="image.small"
             class="align-end text-white"
             height="200"
-            :src="image.medium ? image.medium : `~/assets/products/noimage.jpg`"
+            :src="
+              product.image.medium
+                ? product.image.medium
+                : `./assets/products/noimage.jpg`
+            "
           ></v-img>
           <v-card-text>
             <h6 class="card-subtitle">&yen;{{ product.price }}</h6>
-            <v-card-title text @click="sortGenre(product.genreCategory.id)">
+            <v-btn text @click="sortGenre(product.genreCategory.id)">
               #{{ product.genreCategory.name }}
-            </v-card-title>
+            </v-btn>
             <p>{{ product.description }}</p>
             <v-btn color="primary" @click="goToUrl(product.url)"
               >購入する</v-btn
@@ -118,6 +120,7 @@ const handlePage = async () => {
   }
 };
 
+// タグをクリックすると、ジャンルタグで絞り込む
 const sortGenre = async (value: string) => {
   store.sortGenre(value);
   if (store.$state.searchOption === "yahoo") {

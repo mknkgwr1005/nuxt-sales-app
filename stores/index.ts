@@ -8,6 +8,8 @@ import { rktProducts } from "~/types/rakuten/rktProducts";
 import type { newArriveItem } from "~/types/registerProducts/newArriveItem";
 import { apiProducts } from "~/types/yahoo/apiProducts";
 import { CategoryDetail } from "~/types/yahoo/category/categoryDetail";
+import { CategoryTitle } from "~/types/yahoo/category/categoryTitle";
+import type { Image } from "~/types/yahoo/image";
 
 export const useIndexStore = defineStore("index", {
   state: () => ({
@@ -40,6 +42,7 @@ export const useIndexStore = defineStore("index", {
     sort: "",
     yahooCategory: new Array<Category>(),
     yCategory: new Array<CategoryDetail>(),
+    yImagePath: "",
     rktCategory: new Array<Category>(),
     rktChildCategory: [],
     genre: "",
@@ -393,31 +396,23 @@ export const useIndexStore = defineStore("index", {
 
       // カテゴリ（レベル１）の表示
       for (const category of currentCategory) {
-        const categoryTitle = category.title;
-        const mappedTitle = categoryTitle.map((title) => title.short);
-        console.log(mappedTitle);
-
-        const displayTitle = mappedTitle[0];
         displayCategory.push({
-          text: displayTitle,
+          text: category.title.medium,
           value: category.id,
         });
         // 子カテゴリの表示
         const childrens = category.children;
-        const childLength = Number(Object.keys(childrens));
-        if (childLength > 0) {
-          for (const child of Object.keys(childrens)) {
-            const data = childrens[childLength];
-            if (data === undefined) {
-              continue;
-            }
-            const dataTitle = displayTitle;
-
-            displayCategory.push({
-              text: "-" + dataTitle,
-              value: data.id,
-            });
+        for (const child of Object.keys(childrens)) {
+          const data = childrens[child];
+          if (data === "Child") {
+            continue;
           }
+          const dataTitle = data.Title.Medium;
+
+          displayCategory.push({
+            text: "-" + dataTitle,
+            value: data.Id,
+          });
         }
       }
     },
@@ -553,8 +548,6 @@ export const useIndexStore = defineStore("index", {
      * @param newId
      */
     sortGenre(payload: string) {
-      console.log(payload);
-
       this.currentPageNum = 1;
       this.genre = payload;
     },
