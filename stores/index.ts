@@ -396,7 +396,6 @@ export const useIndexStore = defineStore("index", {
      */
     showYahooCategory(payload: any) {
       const displayCategory = [];
-      const childCategory = [];
 
       if (this.yahooCategory.length < 1) {
         for (const { currentCategory, childrenCategories } of payload) {
@@ -409,7 +408,7 @@ export const useIndexStore = defineStore("index", {
           for (const key in childrenCategories) {
             if (key === "_container") continue;
             const child = childrenCategories[key];
-            childCategory.push({
+            displayCategory.push({
               text: `- ${child.Title.Medium}`,
               value: child.Id,
             });
@@ -417,32 +416,6 @@ export const useIndexStore = defineStore("index", {
 
           // Vueのステートにカテゴリ情報を設定する
           this.yahooCategory = displayCategory;
-          this.yCategory = childCategory;
-        }
-      }
-    },
-    /**
-     * 楽天の子カテゴリを表示する
-     * @param state
-     * @param payload
-     */
-    showRakutenChild(payload: any) {
-      const categories = payload;
-      const displayCategory = this.rktCategory;
-
-      for (const category of categories) {
-        const current = category.current;
-        displayCategory.push({
-          text: current.genreName, // プロパティ名に'?'は不要
-          value: current.genreId,
-        } as Category); // 型アサーションを使用
-
-        const children = category.children;
-        for (const child of children) {
-          displayCategory.push({
-            text: "―" + child.child.genreNam1e,
-            value: child.child.genreId,
-          } as Category); // 型アサーションを使用
         }
       }
     },
@@ -493,6 +466,33 @@ export const useIndexStore = defineStore("index", {
             rktProduct.Item.taxFlag
           )
         );
+      }
+    },
+    /**
+     * 楽天の子カテゴリを表示する
+     * @param state
+     * @param payload
+     */
+    showRakutenChild(payload: any) {
+      const categories = payload;
+      const displayCategory = this.rktCategory;
+
+      for (const category of categories) {
+        const current = category.current;
+        displayCategory.push({
+          text: current.genreName, // プロパティ名に'?'は不要
+          value: current.genreId,
+        } as Category); // 型アサーションを使用
+
+        console.log(current);
+
+        // const children = category.children;
+        // for (const child of children) {
+        //   displayCategory.push({
+        //     text: "―" + child.child.genreNam1e,
+        //     value: child.child.genreId,
+        //   } as Category); // 型アサーションを使用
+        // }
       }
     },
     /**

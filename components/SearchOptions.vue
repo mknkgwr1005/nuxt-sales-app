@@ -42,7 +42,8 @@
             v-model="store.$state.genre"
             :items="store.$state.rktCategory"
             label="ジャンル"
-            value="title"
+            item-title="text"
+            item-value="value"
             outlined
           ></v-select>
         </v-form>
