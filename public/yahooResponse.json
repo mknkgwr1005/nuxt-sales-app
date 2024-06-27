@@ -1,0 +1,113 @@
+{
+  "data": {
+    "ResultSet": {
+      "0": {
+        "Result": {
+          "Categories": {
+            "Current": {
+              "Id": "13457",
+              "ParentId": "1",
+              "Url": "https://shopping.yahoo.co.jp/category/13457/recommend",
+              "Title": {
+                "Short": "ファッション",
+                "Medium": "ファッション",
+                "Long": "ファッション"
+              },
+              "Path": {
+                "0": {
+                  "_attributes": {
+                    "depth": 1
+                  },
+                  "Id": "1",
+                  "ParentId": "0",
+                  "Title": {
+                    "Name": "Shopping"
+                  }
+                },
+                "1": {
+                  "_attributes": {
+                    "depth": 2
+                  },
+                  "Id": "13457",
+                  "ParentId": "1",
+                  "Title": {
+                    "Name": "ファッション"
+                  }
+                },
+                "_container": "Category"
+              }
+            },
+            "Children": {
+              "0": {
+                "_attributes": {
+                  "sortOrder": "10"
+                },
+                "Id": "2494",
+                "Url": "https://shopping.yahoo.co.jp/category/2494/recommend",
+                "Title": {
+                  "Short": "レディースファッション",
+                  "Medium": "レディースファッション",
+                  "Long": "レディースファッション"
+                }
+              },
+              "1": {
+                "_attributes": {
+                  "sortOrder": "20"
+                },
+                "Id": "2495",
+                "Url": "https://shopping.yahoo.co.jp/category/2495/recommend",
+                "Title": {
+                  "Short": "メンズファッション",
+                  "Medium": "メンズファッション",
+                  "Long": "メンズファッション"
+                }
+              },
+              "2": {
+                "_attributes": {
+                  "sortOrder": "30"
+                },
+                "Id": "2496",
+                "Url": "https://shopping.yahoo.co.jp/category/2496/recommend",
+                "Title": {
+                  "Short": "腕時計、アクセサリー",
+                  "Medium": "腕時計、アクセサリー",
+                  "Long": "ファッション > 腕時計、アクセサリー"
+                }
+              },
+              "_container": "Child"
+            }
+          }
+        }
+      },
+      "totalResultsReturned": "1"
+    }
+  },
+  "status": 200,
+  "statusText": "",
+  "headers": {
+    "content-length": "1638",
+    "content-type": "application/json"
+  },
+  "config": {
+    "transitional": {
+      "silentJSONParsing": true,
+      "forcedJSONParsing": true,
+      "clarifyTimeoutError": false
+    },
+    "adapter": ["xhr", "http", "fetch"],
+    "transformRequest": [null],
+    "transformResponse": [null],
+    "timeout": 0,
+    "xsrfCookieName": "XSRF-TOKEN",
+    "xsrfHeaderName": "X-XSRF-TOKEN",
+    "maxContentLength": -1,
+    "maxBodyLength": -1,
+    "env": {},
+    "headers": {
+      "Accept": "application/json, text/plain, */*"
+    },
+    "method": "get",
+    "url": "https://shopping.yahooapis.jp/ShoppingWebService/V1/categorySearch?appid=dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-&category_id=13457&output=json"
+  },
+  "request": {}
+}

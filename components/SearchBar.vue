@@ -42,12 +42,12 @@
         <v-btn class="filter-button" @click="setFilterOn">絞り込み</v-btn>
       </v-col>
     </v-row>
-    <search-options v-if="store.$state.filterOn === true" />
+    <SearchOptions v-if="store.$state.filterOn === true" />
   </div>
 </template>
 
 <script setup lang="ts">
-import SearchOptions from "#components";
+import { SearchOptions } from "#components";
 
 const store = useIndexStore();
 // 商品一覧を取得する
@@ -55,7 +55,6 @@ const searchProducts = async () => {
   console.log("search");
 
   const searchOption = store.$state.searchOption;
-  console.log(searchOption);
 
   if (searchOption === "yahoo") {
     store.getProductList();
@@ -68,7 +67,8 @@ const searchProducts = async () => {
   }
 };
 const setFilterOn = () => {
-  store.setFilterOn;
+  store.setFilterOn();
+  searchProducts();
 };
 </script>
 

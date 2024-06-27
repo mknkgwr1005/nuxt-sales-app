@@ -41,7 +41,7 @@ export const useIndexStore = defineStore("index", {
     ],
     sort: "",
     yahooCategory: new Array<Category>(),
-    yCategory: new Array<CategoryDetail>(),
+    yCategory: new Array<Category>(),
     yImagePath: "",
     rktCategory: new Array<Category>(),
     rktChildCategory: [],
@@ -58,6 +58,8 @@ export const useIndexStore = defineStore("index", {
      * @param context -state
      */
     async getProductList() {
+      console.log("getting productlist...");
+
       this.rktProductList = [];
       this.options = [];
       const stateSort = this.sort;
@@ -84,7 +86,7 @@ export const useIndexStore = defineStore("index", {
 
       if (this.results !== 0) {
         this.productsPerPage = this.results;
-        this.options.push("&results=", String(this.results));
+        this.options.push("&results=", String(this.productsPerPage));
       }
       if (this.currentPageNum !== 1) {
         this.goToNextPage;
@@ -116,18 +118,32 @@ export const useIndexStore = defineStore("index", {
      * 子カテゴリを探す
      */
     async findCategoryDetail() {
+      console.log("searchingCategory...");
+
       const categoryIds = [
         13457, 2498, 2505, 2511, 2513, 2501, 2500, 2502, 2504, 2506, 2507, 2508,
         2503, 2509, 2510, 2497, 2512, 2514, 2516, 2517, 10002,
       ];
       const payload = [];
+      // すべてのカテゴリを取得する
       for (const categoryid of categoryIds) {
         const response = await axios.get(
           "https://shopping.yahooapis.jp/ShoppingWebService/V1/categorySearch?appid=dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-&category_id=" +
             +categoryid +
             "&output=json"
         );
-        payload.push(response.data.ResultSet[0].Result.Categories);
+
+        const currentCategory =
+          response.data.ResultSet["0"].Result.Categories.Current;
+        const childrenCategories =
+          response.data.ResultSet["0"].Result.Categories.Children;
+
+        payload.push({
+          currentCategory,
+          childrenCategories,
+        });
+
+        console.log(payload);
       }
       this.showYahooCategory(payload);
     },
@@ -379,40 +395,29 @@ export const useIndexStore = defineStore("index", {
      * @param payload
      */
     showYahooCategory(payload: any) {
-      for (const category of payload) {
-        this.yCategory.push(
-          new CategoryDetail(
-            category.Current.Id,
-            category.Current.ParentId,
-            category.Current.Url,
-            category.Current.Title,
-            category.Current.Path,
-            category.Children
-          )
-        );
-      }
-      const currentCategory = this.yCategory;
-      const displayCategory = this.yahooCategory;
+      const displayCategory = [];
+      const childCategory = [];
 
-      // カテゴリ（レベル１）の表示
-      for (const category of currentCategory) {
-        displayCategory.push({
-          text: category.title.medium,
-          value: category.id,
-        });
-        // 子カテゴリの表示
-        const childrens = category.children;
-        for (const child of Object.keys(childrens)) {
-          const data = childrens[child];
-          if (data === "Child") {
-            continue;
-          }
-          const dataTitle = data.Title.Medium;
-
+      if (this.yahooCategory.length < 1) {
+        for (const { currentCategory, childrenCategories } of payload) {
           displayCategory.push({
-            text: "-" + dataTitle,
-            value: data.Id,
+            text: currentCategory.Title.Medium,
+            value: currentCategory.Id,
           });
+
+          // // 子カテゴリの表示
+          for (const key in childrenCategories) {
+            if (key === "_container") continue;
+            const child = childrenCategories[key];
+            childCategory.push({
+              text: `- ${child.Title.Medium}`,
+              value: child.Id,
+            });
+          }
+
+          // Vueのステートにカテゴリ情報を設定する
+          this.yahooCategory = displayCategory;
+          this.yCategory = childCategory;
         }
       }
     },
