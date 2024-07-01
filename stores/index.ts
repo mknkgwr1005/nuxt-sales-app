@@ -45,7 +45,10 @@ export const useIndexStore = defineStore("index", {
     yImagePath: "",
     rktCategory: new Array<Category>(),
     rktChildCategory: [],
+    //親カテゴリ（表示用）
     genre: "",
+    //子カテゴリ（表示用）
+    childGenre: new Array<Category>(),
     lastHitUrl: "",
     registerData: new Array<newArriveItem>(),
     announceData: new Array<commonProducts>(),
@@ -58,7 +61,7 @@ export const useIndexStore = defineStore("index", {
      * @param context -state
      */
     async getProductList() {
-      console.log("getting productlist...");
+      console.log("getting productlist...:" + this.inputValue);
 
       this.rktProductList = [];
       this.options = [];
@@ -142,8 +145,6 @@ export const useIndexStore = defineStore("index", {
           currentCategory,
           childrenCategories,
         });
-
-        console.log(payload);
       }
       this.showYahooCategory(payload);
     },
@@ -397,23 +398,33 @@ export const useIndexStore = defineStore("index", {
     showYahooCategory(payload: any) {
       const displayCategory = [];
 
-      if (this.yahooCategory.length < 1) {
-        for (const { currentCategory, childrenCategories } of payload) {
-          displayCategory.push({
-            text: currentCategory.Title.Medium,
-            value: currentCategory.Id,
-          });
+      for (const { currentCategory, childrenCategories } of payload) {
+        displayCategory.push({
+          text: currentCategory.Title.Medium,
+          value: currentCategory.Id,
+        });
 
-          // // 子カテゴリの表示
+        const selectedGenre = this.genre;
+        const currentGenreId = String(currentCategory.Id);
+        const displayChildCategory = [];
+        console.log(selectedGenre === currentGenreId);
+
+        //  子カテゴリの表示
+        if (selectedGenre === currentGenreId) {
+          console.log("setChildCategory");
+
           for (const key in childrenCategories) {
             if (key === "_container") continue;
             const child = childrenCategories[key];
-            displayCategory.push({
+            displayChildCategory.push({
               text: `- ${child.Title.Medium}`,
               value: child.Id,
             });
           }
+          this.childGenre = displayChildCategory;
+        }
 
+        if (this.yahooCategory.length < 1) {
           // Vueのステートにカテゴリ情報を設定する
           this.yahooCategory = displayCategory;
         }

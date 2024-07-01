@@ -35,6 +35,7 @@
             label="ジャンル"
             item-value="value"
             item-title="text"
+            @blur="updateChildCategory"
             outlined
           />
           <v-select
@@ -46,6 +47,16 @@
             item-value="value"
             outlined
           ></v-select>
+        </v-form>
+        <v-form>
+          <v-select
+            v-if="store.$state.genre"
+            :items="store.$state.childGenre"
+            label="子カテゴリ"
+            item-value="value"
+            item-title="text"
+            outlined
+          />
         </v-form>
       </v-col>
     </v-row>
@@ -69,6 +80,18 @@
 import { useIndexStore } from "~/stores/index"; // ストアのインポート
 
 const store = useIndexStore();
+
+const updateChildCategory = () => {
+  console.log("showing this ChildCategory:" + store.$state.genre);
+
+  if (store.$state.genre !== "") {
+    if (store.$state.searchOption === "yahoo") {
+      store.findCategoryDetail();
+    }
+  } else {
+    store.findRktChildCategory();
+  }
+};
 
 // resultsの監視
 watch(
