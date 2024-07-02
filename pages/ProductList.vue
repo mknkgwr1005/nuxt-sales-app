@@ -18,10 +18,10 @@
       </v-col>
     </v-row>
 
-    <v-row v-if="store.$state.productList.length !== 0" justify="center">
+    <v-row v-if="store.productList.length !== 0" justify="center">
       <v-col
         cols="auto"
-        v-for="product of store.$state.productList"
+        v-for="product of store.productList"
         :key="product.index"
       >
         <v-card class="mb-3" :title="product.name">
@@ -51,10 +51,10 @@
       </v-col>
     </v-row>
 
-    <v-row v-if="store.$state.rktProductList.length !== 0" justify="center">
+    <v-row v-if="store.rktProductList.length !== 0" justify="center">
       <v-col
         cols="auto"
-        v-for="rktProduct of store.$state.rktProductList"
+        v-for="rktProduct of store.rktProductList"
         :key="rktProduct.affiliateUrl"
       >
         <v-card class="mb-3" :title="rktProduct.itemName">
@@ -84,12 +84,12 @@
     <v-row v-if="store.totalPageNum > 0">
       <v-col cols="12" class="overflow-auto">
         <v-pagination
-          v-model="store.$state.currentPageNum"
-          :length="store.$state.totalPageNum"
+          v-model="store.currentPageNum"
+          :length="store.totalPageNum"
           :total-visible="10"
           first-icon="mdi-chevron-double-left"
           last-icon="mdi-chevron-double-right"
-          @input="handlePage"
+          @update:modelValue="handlePage"
         ></v-pagination>
       </v-col>
     </v-row>
@@ -107,15 +107,15 @@ const register = (product: any) => {
   store.setRegisterData(product);
 };
 
-// // 外部URLに遷移する
+//  外部URLに遷移する
 const goToUrl = (url: string) => {
   window.location.href = url;
 };
 
-const handlePage = async () => {
-  if (store.$state.searchOption === "yahoo") {
+const handlePage = () => {
+  if (store.searchOption === "yahoo") {
     store.getProductList();
-  } else {
+  } else if (store.searchOption === "rakuten") {
     store.getRktProductList();
   }
 };
@@ -123,10 +123,10 @@ const handlePage = async () => {
 // タグをクリックすると、ジャンルタグで絞り込む
 const sortGenre = async (value: string) => {
   store.sortGenre(value);
-  if (store.$state.searchOption === "yahoo") {
-    store.getProductList;
+  if (store.searchOption === "yahoo") {
+    store.getProductList();
   } else {
-    store.getRktProductList;
+    store.getRktProductList();
   }
 };
 </script>
