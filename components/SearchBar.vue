@@ -35,7 +35,8 @@
     <v-row
       v-if="
         store.$state.productList.length !== 0 ||
-        store.$state.rktProductList.length !== 0
+        store.$state.rktProductList.length !== 0 ||
+        store.filterOn
       "
     >
       <v-col cols="12" class="text-center">
@@ -70,6 +71,17 @@ const setFilterOn = () => {
   store.setFilterOn();
   searchProducts();
 };
+
+// resultsの監視
+watch(
+  () => store.searchOption,
+  (newVal: string) => {
+    if (newVal) {
+      console.log("changed!" + newVal);
+      store.resetGenreCategory();
+    }
+  }
+);
 </script>
 
 <style scoped>

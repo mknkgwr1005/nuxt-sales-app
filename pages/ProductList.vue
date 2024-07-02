@@ -81,7 +81,7 @@
       </v-col>
     </v-row>
 
-    <v-row>
+    <v-row v-if="store.totalPageNum > 0">
       <v-col cols="12" class="overflow-auto">
         <v-pagination
           v-model="store.$state.currentPageNum"

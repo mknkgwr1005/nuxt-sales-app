@@ -61,8 +61,6 @@ export const useIndexStore = defineStore("index", {
      * @param context -state
      */
     async getProductList() {
-      console.log("getting productlist...:" + this.inputValue);
-
       this.rktProductList = [];
       this.options = [];
       const stateSort = this.sort;
@@ -118,11 +116,9 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
-     * 子カテゴリを探す
+     * yahoo-カテゴリを探す
      */
     async findCategoryDetail() {
-      console.log("searchingCategory...");
-
       const categoryIds = [
         13457, 2498, 2505, 2511, 2513, 2501, 2500, 2502, 2504, 2506, 2507, 2508,
         2503, 2509, 2510, 2497, 2512, 2514, 2516, 2517, 10002,
@@ -198,7 +194,6 @@ export const useIndexStore = defineStore("index", {
             sortOptions
         );
         const payload = response.data;
-        console.log("rakuten", payload);
         this.showRktProductList(payload.Items);
         this.handlePageNum(payload);
       } catch (err: any) {
@@ -206,7 +201,7 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
-     * 子カテゴリを探す
+     * 楽天－すべてのカテゴリをfetchする
      */
     async findRktChildCategory() {
       const payload = [];
@@ -242,6 +237,15 @@ export const useIndexStore = defineStore("index", {
       this.showRakutenChild(payload);
     },
     /**
+     * 前のカテゴリを削除する
+     */
+    resetGenreCategory() {
+      console.log("reset");
+
+      this.genre = "";
+      this.childGenre = [];
+    },
+    /**
      * 速報を表示する
      * @param state
      * @param payload
@@ -262,7 +266,6 @@ export const useIndexStore = defineStore("index", {
 
         this.announceData.push(payload);
       }
-      console.log(this.announceData);
     },
     /**
      * 速報用に、検索で１番新しいURLをセットする
@@ -407,12 +410,9 @@ export const useIndexStore = defineStore("index", {
         const selectedGenre = this.genre;
         const currentGenreId = String(currentCategory.Id);
         const displayChildCategory = [];
-        console.log(selectedGenre === currentGenreId);
 
         //  子カテゴリの表示
         if (selectedGenre === currentGenreId) {
-          console.log("setChildCategory");
-
           for (const key in childrenCategories) {
             if (key === "_container") continue;
             const child = childrenCategories[key];
@@ -480,13 +480,14 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
-     * 楽天の子カテゴリを表示する
+     * 楽天のカテゴリを表示する
      * @param state
      * @param payload
      */
     showRakutenChild(payload: any) {
       const categories = payload;
       const displayCategory = this.rktCategory;
+      const rktChildCategory = [];
 
       for (const category of categories) {
         const current = category.current;
@@ -495,15 +496,20 @@ export const useIndexStore = defineStore("index", {
           value: current.genreId,
         } as Category); // 型アサーションを使用
 
-        console.log(current);
+        const currentGenreId = String(current.genreId);
+        const genreId = String(this.genre);
 
-        // const children = category.children;
-        // for (const child of children) {
-        //   displayCategory.push({
-        //     text: "―" + child.child.genreNam1e,
-        //     value: child.child.genreId,
-        //   } as Category); // 型アサーションを使用
-        // }
+        // 子カテゴリの表示
+        if (currentGenreId == genreId) {
+          const children = category.children;
+          for (const child of children) {
+            rktChildCategory.push({
+              text: "―" + child.child.genreName,
+              value: child.child.genreId,
+            } as Category); // 型アサーションを使用
+          }
+          this.childGenre = rktChildCategory;
+        }
       }
     },
     /**

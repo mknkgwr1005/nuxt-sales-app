@@ -4,8 +4,8 @@
       <v-col cols="auto">
         <v-form>
           <v-select
-            v-model="store.$state.results"
-            :items="store.$state.displayData"
+            v-model="store.results"
+            :items="store.displayData"
             label="表示数"
             item-title="text"
             item-value="value"
@@ -16,8 +16,8 @@
       <v-col cols="auto">
         <v-form>
           <v-select
-            v-model="store.$state.sort"
-            :items="store.$state.changeOrderData"
+            v-model="store.sort"
+            :items="store.changeOrderData"
             label="並び順"
             default="title"
             item-title="text"
@@ -29,29 +29,31 @@
       <v-col cols="auto">
         <v-form>
           <v-select
-            v-if="store.$state.searchOption === 'yahoo'"
-            v-model="store.$state.genre"
-            :items="store.$state.yahooCategory"
+            v-if="store.searchOption === 'yahoo'"
+            v-model="store.genre"
+            :items="store.yahooCategory"
             label="ジャンル"
             item-value="value"
             item-title="text"
-            @blur="updateChildCategory"
+            type="input"
+            @update:modelValue="updateChildCategory"
             outlined
           />
           <v-select
-            v-if="store.$state.searchOption === 'rakuten'"
-            v-model="store.$state.genre"
-            :items="store.$state.rktCategory"
+            v-if="store.searchOption === 'rakuten'"
+            v-model="store.genre"
+            :items="store.rktCategory"
             label="ジャンル"
             item-title="text"
             item-value="value"
+            @update:modelValue="updateChildCategory"
             outlined
           ></v-select>
         </v-form>
         <v-form>
           <v-select
-            v-if="store.$state.genre"
-            :items="store.$state.childGenre"
+            v-if="store.genre"
+            :items="store.childGenre"
             label="子カテゴリ"
             item-value="value"
             item-title="text"
@@ -87,9 +89,9 @@ const updateChildCategory = () => {
   if (store.$state.genre !== "") {
     if (store.$state.searchOption === "yahoo") {
       store.findCategoryDetail();
+    } else if (store.$state.searchOption === "rakuten") {
+      store.findRktChildCategory();
     }
-  } else {
-    store.findRktChildCategory();
   }
 };
 
