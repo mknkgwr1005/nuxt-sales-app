@@ -90,7 +90,8 @@ export const useIndexStore = defineStore("index", {
         this.options.push("&results=", String(this.productsPerPage));
       }
       if (this.currentPageNum !== 1) {
-        this.goToNextPage;
+        console.log(this.currentPageNum);
+        this.goToNextPage();
       }
       const formatOptions = this.options.join("");
       const imageSize = "&image_size=300";
@@ -178,7 +179,7 @@ export const useIndexStore = defineStore("index", {
         this.options.push("&hits=", String(this.results));
       }
       if (this.currentPageNum !== 1) {
-        this.goToNextPage;
+        this.goToNextPage();
       }
       const formatOptions = this.options.join("");
 
@@ -244,6 +245,9 @@ export const useIndexStore = defineStore("index", {
 
       this.genre = "";
       this.childGenre = [];
+      this.results = 20;
+      this.sort = "";
+      this.currentPageNum = 1;
     },
     /**
      * 速報を表示する
@@ -547,7 +551,10 @@ export const useIndexStore = defineStore("index", {
      * @param payload
      */
     goToNextPage() {
+      console.log("go to next page");
       if (this.searchOption === "yahoo") {
+        console.log("yahoo");
+
         let lastIndex = 0;
         lastIndex = this.currentPageNum * this.results - 1;
         this.start = lastIndex;

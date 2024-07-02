@@ -66,12 +66,10 @@
       <v-col cols="12">
         <p
           v-if="
-            store.$state.productList.length !== 0 ||
-            store.$state.rktProductList.length !== 0
+            store.productList.length !== 0 || store.rktProductList.length !== 0
           "
         >
-          {{ store.$state.productsPerPage }}件表示
-          {{ store.$state.totalProductsNum }}件ヒット
+          {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
         </p>
       </v-col>
     </v-row>
@@ -84,8 +82,6 @@ import { useIndexStore } from "~/stores/index"; // ストアのインポート
 const store = useIndexStore();
 
 const updateChildCategory = () => {
-  console.log("showing this ChildCategory:" + store.$state.genre);
-
   if (store.$state.genre !== "") {
     if (store.$state.searchOption === "yahoo") {
       store.findCategoryDetail();
@@ -97,9 +93,10 @@ const updateChildCategory = () => {
 
 // resultsの監視
 watch(
-  () => store.$state.results,
+  () => store.results,
   (val: number) => {
     if (val) {
+      console.log(val);
       store.currentPageNum = 1;
     }
   }
