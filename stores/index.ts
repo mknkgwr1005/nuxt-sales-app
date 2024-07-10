@@ -1,4 +1,3 @@
-import axios from "axios";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { defineStore } from "pinia";
 import { db } from "~/firebase";
@@ -7,9 +6,8 @@ import { Category } from "~/types/rakuten/Category";
 import { rktProducts } from "~/types/rakuten/rktProducts";
 import type { newArriveItem } from "~/types/registerProducts/newArriveItem";
 import { apiProducts } from "~/types/yahoo/apiProducts";
-import { CategoryDetail } from "~/types/yahoo/category/categoryDetail";
-import { CategoryTitle } from "~/types/yahoo/category/categoryTitle";
-import type { Image } from "~/types/yahoo/image";
+// import axios from "~/plugins/axios";
+import axios from "axios";
 
 export const useIndexStore = defineStore("index", {
   state: () => ({
@@ -64,49 +62,52 @@ export const useIndexStore = defineStore("index", {
       this.rktProductList = [];
       this.options = [];
       const stateSort = this.sort;
-      let sortOptions = "";
+      let sortOptions = null;
 
       if (stateSort.length !== 0) {
         if (stateSort === "reccomend") {
-          sortOptions = "&sort=" + "-score";
+          sortOptions = "-score";
         } else if (stateSort === "popular") {
-          sortOptions = "&sort=" + "-review_count";
+          sortOptions = "-review_count";
         } else if (stateSort === "cheapest") {
-          sortOptions = "&sort=" + "%2B" + "price";
+          sortOptions = "+price";
         } else if (stateSort === "expensive") {
-          sortOptions = "&sort=-price";
+          sortOptions = "-price";
         }
       }
 
       const stateGenre = this.genre;
-      let sortGenre = "";
+      let sortGenre = null;
 
       if (stateGenre.length !== 0) {
-        sortGenre = "&genre_category_id=" + stateGenre;
+        sortGenre = stateGenre;
       }
-
+      let resultsNum = null;
       if (this.results !== 0) {
         this.productsPerPage = this.results;
-        this.options.push("&results=", String(this.productsPerPage));
+        resultsNum = this.productsPerPage;
       }
       if (this.currentPageNum !== 1) {
         console.log(this.currentPageNum);
         this.goToNextPage();
       }
-      const formatOptions = this.options.join("");
-      const imageSize = "&image_size=300";
-      const appId = "dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-";
+      const { $axios } = useNuxtApp();
+      const config = useRuntimeConfig();
+
       try {
-        const response = await axios.get(
-          "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=" +
-            appId +
-            "&query=" +
-            this.inputValue +
-            imageSize +
-            sortGenre +
-            formatOptions +
-            sortOptions
-        );
+        // 通信先のHTTP以降を指定する
+        const response = await $axios.get("/ShoppingWebService/V3/itemSearch", {
+          //パラメータリクエスト
+          params: {
+            appid: config.public.YAHOO_API_APPID,
+            query: this.inputValue,
+            image_size: 300,
+            genre_category_id: sortGenre,
+            results: resultsNum,
+            start: this.start,
+            sort: sortOptions,
+          },
+        });
         const payload = response.data;
         // 商品を表示させる
         this.showProductList(payload.hits);
@@ -125,12 +126,19 @@ export const useIndexStore = defineStore("index", {
         2503, 2509, 2510, 2497, 2512, 2514, 2516, 2517, 10002,
       ];
       const payload = [];
+      const { $axios } = useNuxtApp();
       // すべてのカテゴリを取得する
       for (const categoryid of categoryIds) {
-        const response = await axios.get(
-          "https://shopping.yahooapis.jp/ShoppingWebService/V1/categorySearch?appid=dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-&category_id=" +
-            +categoryid +
-            "&output=json"
+        const config = useRuntimeConfig();
+        const response = await $axios.get(
+          "/ShoppingWebService/V1/categorySearch",
+          {
+            params: {
+              appid: config.public.YAHOO_API_APPID,
+              category_id: categoryid,
+              output: "json",
+            },
+          }
         );
 
         const currentCategory =
@@ -554,11 +562,10 @@ export const useIndexStore = defineStore("index", {
       console.log("go to next page");
       if (this.searchOption === "yahoo") {
         console.log("yahoo");
-
         let lastIndex = 0;
         lastIndex = this.currentPageNum * this.results - 1;
         this.start = lastIndex;
-        this.options.push("&start=", String(this.start));
+        // this.options.push("&start=", String(this.start));
         console.log("start", this.start);
       } else if (this.searchOption === "rakuten") {
         this.options.push("&page=", String(this.currentPageNum));
@@ -606,13 +613,21 @@ export const useIndexStore = defineStore("index", {
               const sortGenre =
                 "&genre_category_id=" + registeredProduct.genreId;
               const results = "&results=5";
-              const appId =
-                "dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-";
+              const { $axios } = useNuxtApp();
+              const config = useRuntimeConfig();
 
-              const response = await axios.get(
-                `https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=${appId}&query=${searchKeyword}${imageSize}${sortGenre}${results}`
+              const response = await $axios.get(
+                "/api/ShoppingWebService/V3/itemSearch",
+                {
+                  params: {
+                    appid: config.public.YAHOO_API_APPID,
+                    query: searchKeyword,
+                    imageSize,
+                    sortGenre,
+                    results,
+                  },
+                }
               );
-
               nowData = response.data.hits[0];
               newUrl = nowData.url;
             } else if (searchOption === "rakuten") {
