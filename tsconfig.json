@@ -1,4 +1,10 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": "./.nuxt/tsconfig.json"
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      // 他の設定がある場合、それらを保持
+      "./types/nuxt.d.ts"
+    ]
+  }
 }
