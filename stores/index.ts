@@ -636,9 +636,18 @@ export const useIndexStore = defineStore("index", {
               newUrl = nowData.url;
             } else if (searchOption === "rakuten") {
               // 楽天のとき
-              const rktAppId = "1047939681842243304";
-              const response = await axios.get(
-                `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=${rktAppId}&keyword=${registeredProduct.keyword}&genreId=${registeredProduct.genreId}`
+              const { $axiosRakuten } = useNuxtApp();
+              const config = useRuntimeConfig();
+
+              const response = await $axiosRakuten.get(
+                "/IchibaItem/Search/20170706",
+                {
+                  params: {
+                    applicationId: config.public.RAKUTEN_API_APPID,
+                    keyword: this.inputValue,
+                    genreId: registeredProduct.genreId,
+                  },
+                }
               );
 
               nowData = response.data.Items[0].Item;
