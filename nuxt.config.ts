@@ -35,6 +35,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       YAHOO_API_APPID: process.env.YAHOO_API_APPID,
+      RAKUTEN_API_APPID: process.env.RAKUTEN_API_APPID,
     },
   },
 });

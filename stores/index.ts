@@ -13,7 +13,6 @@ export const useIndexStore = defineStore("index", {
   state: () => ({
     inputValue: "",
     searchOption: "",
-    options: new Array<string>(),
     totalProductsNum: 0,
     totalPageNum: 1,
     productsPerPage: 0,
@@ -60,7 +59,6 @@ export const useIndexStore = defineStore("index", {
      */
     async getProductList() {
       this.rktProductList = [];
-      this.options = [];
       const stateSort = this.sort;
       let sortOptions = null;
 
@@ -159,49 +157,53 @@ export const useIndexStore = defineStore("index", {
      */
     async getRktProductList() {
       this.productList = [];
-      this.options = [];
       const stateSort = this.sort;
-      let sortOptions = "";
+      let sortOptions = null;
 
       if (stateSort.length !== 0) {
         if (stateSort === "reccomend") {
-          sortOptions = "&sort=" + "-reviewAverage";
+          sortOptions = "-reviewAverage";
         } else if (stateSort === "popular") {
-          sortOptions = "&sort=" + "-reviewCount";
+          sortOptions = "-reviewCount";
         } else if (stateSort === "cheapest") {
-          sortOptions = "&sort=" + "%2B" + "itemPrice";
+          sortOptions = "+itemPrice";
         } else if (stateSort === "expensive") {
-          sortOptions = "&sort=-itemPrice";
+          sortOptions = "-itemPrice";
         }
       }
 
       const stateGenre = this.genre;
-      let sortGenre = "";
+      let sortGenre = null;
 
       if (stateGenre.length !== 0) {
-        sortGenre = "&genreId=" + stateGenre;
+        sortGenre = stateGenre;
       }
 
       if (this.results !== 0) {
         this.productsPerPage = this.results;
-        this.options.push("&hits=", String(this.results));
       }
       if (this.currentPageNum !== 1) {
         this.goToNextPage();
       }
-      const formatOptions = this.options.join("");
 
-      const appId = "1047939681842243304";
       try {
-        const response = await axios.get(
-          "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=" +
-            appId +
-            "&keyword=" +
-            this.inputValue +
-            sortGenre +
-            formatOptions +
-            sortOptions
+        const { $axiosRakuten } = useNuxtApp();
+        const config = useRuntimeConfig();
+
+        const response = await $axiosRakuten.get(
+          "/IchibaItem/Search/20170706",
+          {
+            params: {
+              applicationId: config.public.RAKUTEN_API_APPID,
+              keyword: this.inputValue,
+              genreId: sortGenre,
+              sort: sortOptions,
+              hits: this.productsPerPage,
+              page: this.start,
+            },
+          }
         );
+
         const payload = response.data;
         this.showRktProductList(payload.Items);
         this.handlePageNum(payload);
@@ -214,16 +216,16 @@ export const useIndexStore = defineStore("index", {
      */
     async findRktChildCategory() {
       const payload = [];
-      const appId = "1047939681842243304";
-
       const genreIds: number[] = [];
 
-      const parents = await axios.get(
-        "https://app.rakuten.co.jp/services/api/IchibaGenre/Search/20140222?applicationId=" +
-          appId +
-          "&genreId=" +
-          0
-      );
+      const { $axiosRakuten } = useNuxtApp();
+      const config = useRuntimeConfig();
+      const parents = await $axiosRakuten.get("/IchibaGenre/Search/20140222", {
+        params: {
+          applicationId: config.public.RAKUTEN_API_APPID,
+          genreId: 0,
+        },
+      });
 
       const parentsData = parents.data;
       const children = parentsData.children;
@@ -234,11 +236,14 @@ export const useIndexStore = defineStore("index", {
       }
 
       for (const genreId of genreIds) {
-        const response = await axios.get(
-          "https://app.rakuten.co.jp/services/api/IchibaGenre/Search/20140222?applicationId=" +
-            appId +
-            "&genreId=" +
-            genreId
+        const response = await $axiosRakuten.get(
+          "/IchibaGenre/Search/20140222",
+          {
+            params: {
+              applicationId: config.public.RAKUTEN_API_APPID,
+              genreId: genreId,
+            },
+          }
         );
         payload.push(response.data);
       }
@@ -548,7 +553,9 @@ export const useIndexStore = defineStore("index", {
         this.productsPerPage = totalResults;
         // 総ページ数
         this.totalPageNum = Math.ceil(this.totalProductsNum / totalResults);
-        console.log("pageTotal", this.totalPageNum);
+        if (this.totalPageNum >= 100) {
+          this.totalPageNum = 50;
+        }
       } else {
         return;
       }
@@ -561,14 +568,11 @@ export const useIndexStore = defineStore("index", {
     goToNextPage() {
       console.log("go to next page");
       if (this.searchOption === "yahoo") {
-        console.log("yahoo");
         let lastIndex = 0;
         lastIndex = this.currentPageNum * this.results - 1;
         this.start = lastIndex;
-        // this.options.push("&start=", String(this.start));
-        console.log("start", this.start);
       } else if (this.searchOption === "rakuten") {
-        this.options.push("&page=", String(this.currentPageNum));
+        this.start = this.currentPageNum;
       }
     },
     /**
