@@ -1,4 +1,11 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { defineStore } from "pinia";
 import { db } from "~/firebase";
 import { commonProducts } from "~/types/commonProducts";
@@ -334,8 +341,7 @@ export const useIndexStore = defineStore("index", {
       );
 
       if (!querySnapshot.empty) {
-        console.log("同じデータが既に存在します");
-        return;
+        return window.alert("同じデータが既に存在します");
       } else {
         // firebaseに送るメソッド
         const registerDataRef = db.collection("registerData");
@@ -343,7 +349,7 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
-     * 登録した商品をstateに保存する
+     * 登録した商品を取得する
      * @param state
      */
     fetchRegisterData() {
@@ -366,6 +372,43 @@ export const useIndexStore = defineStore("index", {
           });
         });
       });
+    },
+    /**
+     * 登録商品の削除
+     * @param payload
+     */
+    async deleteRegisteredProduct(payload: any) {
+      // データの重複をチェック
+      const registerDataCollection = collection(db, "registerData");
+      const queryData = query(
+        registerDataCollection,
+        where("name", "==", payload.name),
+        where("genreId", "==", payload.genreId),
+        where("url", "==", payload.url)
+      );
+
+      const deleteData = await getDocs(queryData);
+      if (deleteData) {
+        // ドキュメントをループして削除
+        deleteData.forEach(async (documentSnapshot) => {
+          try {
+            await deleteDoc(doc(db, "registerData", documentSnapshot.id));
+            window.alert("商品を削除しました");
+          } catch (error) {
+            window.alert("Error removing document: " + error);
+          }
+        });
+        // stateの削除
+        const newRegisterData = this.registerData.filter(
+          (item) =>
+            item.name !== payload.name &&
+            item.genreId !== payload.genreId &&
+            item.url !== payload.url
+        );
+        this.registerData = newRegisterData;
+      } else {
+        return;
+      }
     },
     /**
      * yahooの商品を表示するメソッド
@@ -676,7 +719,7 @@ export const useIndexStore = defineStore("index", {
             this.showNewArriveData(commonProduct);
           }
         } catch (err: any) {
-          console.error(`Error in getRegisteredProducts: ${err.message}`);
+          window.alert(`Error in getRegisteredProducts: ${err.message}`);
         }
       }
     },

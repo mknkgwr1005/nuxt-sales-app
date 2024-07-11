@@ -39,7 +39,7 @@ const store = useIndexStore();
 
 // 外部URLに遷移する
 const goToUrl = (url: string) => {
-  window.location.href = url;
+  window.open(url, "product");
 };
 </script>
 
