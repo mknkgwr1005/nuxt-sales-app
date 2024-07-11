@@ -1,4 +1,11 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { defineStore } from "pinia";
 import { db } from "~/firebase";
 import { commonProducts } from "~/types/commonProducts";
@@ -334,8 +341,7 @@ export const useIndexStore = defineStore("index", {
       );
 
       if (!querySnapshot.empty) {
-        console.log("同じデータが既に存在します");
-        return;
+        return window.alert("同じデータが既に存在します");
       } else {
         // firebaseに送るメソッド
         const registerDataRef = db.collection("registerData");
@@ -343,7 +349,7 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
-     * 登録した商品をstateに保存する
+     * 登録した商品を取得する
      * @param state
      */
     fetchRegisterData() {
@@ -366,6 +372,43 @@ export const useIndexStore = defineStore("index", {
           });
         });
       });
+    },
+    /**
+     * 登録商品の削除
+     * @param payload
+     */
+    async deleteRegisteredProduct(payload: any) {
+      // データの重複をチェック
+      const registerDataCollection = collection(db, "registerData");
+      const queryData = query(
+        registerDataCollection,
+        where("name", "==", payload.name),
+        where("genreId", "==", payload.genreId),
+        where("url", "==", payload.url)
+      );
+
+      const deleteData = await getDocs(queryData);
+      if (deleteData) {
+        // ドキュメントをループして削除
+        deleteData.forEach(async (documentSnapshot) => {
+          try {
+            await deleteDoc(doc(db, "registerData", documentSnapshot.id));
+            window.alert("商品を削除しました");
+          } catch (error) {
+            window.alert("Error removing document: " + error);
+          }
+        });
+        // stateの削除
+        const newRegisterData = this.registerData.filter(
+          (item) =>
+            item.name !== payload.name &&
+            item.genreId !== payload.genreId &&
+            item.url !== payload.url
+        );
+        this.registerData = newRegisterData;
+      } else {
+        return;
+      }
     },
     /**
      * yahooの商品を表示するメソッド
@@ -591,100 +634,95 @@ export const useIndexStore = defineStore("index", {
       this.currentPageNum = 1;
       this.genre = payload;
     },
-    getters: {
-      /**
-       * 登録した商品を取得する
-       * @param context
-       */
-      async getRegisteredProducts() {
-        this.stopSearchCount++;
+    /**
+     * 登録した商品を取得する
+     * @param context
+     */
+    async getRegisteredProducts() {
+      this.stopSearchCount++;
 
-        // 検索を最大5回に制限
-        if (this.stopSearchCount > 5) {
-          return;
-        }
+      // 検索を最大5回に制限
+      if (this.stopSearchCount > 5) {
+        return;
+      }
 
-        for (const registeredProduct of this.registerData) {
-          const searchOption = registeredProduct.searchOption;
-          let newUrl = "";
-          let nowData = null;
+      for (const registeredProduct of this.registerData) {
+        const searchOption = registeredProduct.searchOption;
+        let newUrl = "";
+        let nowData = null;
+        const searchKeyword = registeredProduct.keyword;
 
-          try {
-            if (searchOption === "yahoo") {
-              // Yahooのとき
-              const searchKeyword = registeredProduct.keyword;
-              const imageSize = "&image_size=300";
-              const sortGenre =
-                "&genre_category_id=" + registeredProduct.genreId;
-              const results = "&results=5";
-              const { $axios } = useNuxtApp();
-              const config = useRuntimeConfig();
+        try {
+          if (searchOption === "yahoo") {
+            // Yahooのとき
+            const { $axios } = useNuxtApp();
+            const config = useRuntimeConfig();
 
-              const response = await $axios.get(
-                "/api/ShoppingWebService/V3/itemSearch",
-                {
-                  params: {
-                    appid: config.public.YAHOO_API_APPID,
-                    query: searchKeyword,
-                    imageSize,
-                    sortGenre,
-                    results,
-                  },
-                }
-              );
-              nowData = response.data.hits[0];
-              newUrl = nowData.url;
-            } else if (searchOption === "rakuten") {
-              // 楽天のとき
-              const { $axiosRakuten } = useNuxtApp();
-              const config = useRuntimeConfig();
+            const response = await $axios.get(
+              "/ShoppingWebService/V3/itemSearch",
+              {
+                params: {
+                  appid: config.public.YAHOO_API_APPID,
+                  query: searchKeyword,
+                  image_size: 300,
+                  genre_category_id: registeredProduct.genreId,
+                  results: 5,
+                },
+              }
+            );
+            nowData = response.data.hits[0];
+            newUrl = nowData.url;
+          } else if (searchOption === "rakuten") {
+            // 楽天のとき
+            const { $axiosRakuten } = useNuxtApp();
+            const config = useRuntimeConfig();
 
-              const response = await $axiosRakuten.get(
-                "/IchibaItem/Search/20170706",
-                {
-                  params: {
-                    applicationId: config.public.RAKUTEN_API_APPID,
-                    keyword: this.inputValue,
-                    genreId: registeredProduct.genreId,
-                  },
-                }
-              );
+            const response = await $axiosRakuten.get(
+              "/IchibaItem/Search/20170706",
+              {
+                params: {
+                  applicationId: config.public.RAKUTEN_API_APPID,
+                  keyword: searchKeyword,
+                  genreId: registeredProduct.genreId,
+                },
+              }
+            );
 
-              nowData = response.data.Items[0].Item;
-              newUrl = nowData.itemUrl;
-            }
-
-            const registeredUrl = registeredProduct.url;
-
-            // 新しく取得したデータの先頭と、登録している商品のURLが違うときに速報に表示する
-            if (newUrl && newUrl !== registeredUrl) {
-              // 速報に表示する commit
-              const commonProduct =
-                searchOption === "yahoo"
-                  ? new commonProducts(
-                      nowData.name,
-                      nowData.url,
-                      nowData.image.medium,
-                      nowData.price,
-                      nowData.review.count,
-                      nowData.review.rate
-                    )
-                  : new commonProducts(
-                      nowData.itemName,
-                      nowData.itemUrl,
-                      nowData.mediumImageUrls[0],
-                      nowData.itemPrice,
-                      nowData.reviewCount,
-                      nowData.reviewAverage
-                    );
-
-              this.showNewArriveData(commonProduct);
-            }
-          } catch (err: any) {
-            console.error(`Error in getRegisteredProducts: ${err.message}`);
+            nowData = response.data.Items[0].Item;
+            newUrl = nowData.itemUrl;
           }
+
+          const registeredUrl = registeredProduct.url;
+
+          // 新しく取得したデータの先頭と、登録している商品のURLが違うときに速報に表示する
+          if (newUrl && newUrl !== registeredUrl) {
+            // 速報に表示する commit
+            const commonProduct =
+              searchOption === "yahoo"
+                ? new commonProducts(
+                    nowData.name,
+                    nowData.url,
+                    nowData.image.medium,
+                    nowData.price,
+                    nowData.review.count,
+                    nowData.review.rate
+                  )
+                : new commonProducts(
+                    nowData.itemName,
+                    nowData.itemUrl,
+                    nowData.mediumImageUrls[0],
+                    nowData.itemPrice,
+                    nowData.reviewCount,
+                    nowData.reviewAverage
+                  );
+
+            this.showNewArriveData(commonProduct);
+          }
+        } catch (err: any) {
+          window.alert(`Error in getRegisteredProducts: ${err.message}`);
         }
-      },
+      }
     },
+    getters: {},
   },
 });
