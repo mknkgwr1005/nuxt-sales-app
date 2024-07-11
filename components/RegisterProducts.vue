@@ -60,14 +60,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
 const store = useIndexStore();
 
 const alreadyRegistered = ref(false);
 const optionProduct = ref([
-  { inputValue: "白州", YgenreId: 1344, img: "../assets/img/hakusyuu.jpg" },
-  { inputValue: "山崎", YgenreId: 1344, img: "../assets/img/yamazaki.jpg" },
-  { inputValue: "響", YgenreId: 1344, img: "../assets/img/hibiki.jpg" },
+  { inputValue: "白州", YgenreId: 1344, img: "~/assets/img/hakusyuu.jpg" },
+  { inputValue: "山崎", YgenreId: 1344, img: "./assets/img/yamazaki.jpg" },
+  { inputValue: "響", YgenreId: 1344, img: "./assets/img/hibiki.jpg" },
   {
     inputValue: "Nintendo Switch",
     YgenreId: 48840,
@@ -80,7 +79,10 @@ const toggleNotification = (inputValue: string) => {
   alreadyRegistered.value = !alreadyRegistered.value;
 };
 
-const searchRegisteredItem = () => {
+/**
+ *登録した商品を判定する
+ */
+const searchRegisteredItem = async () => {
   for (const registerItem of store.registerData) {
     for (const option of optionProduct.value) {
       if (registerItem.genreId === option.YgenreId) {

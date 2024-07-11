@@ -13,7 +13,7 @@
         </v-tabs-window-item>
         <v-tabs-window-item value="register">
           <template v-if="tab === 'register'">
-            <RegisterProducts />
+            <RegisterProducts tab="tab" />
           </template>
         </v-tabs-window-item>
       </v-tabs-window>
@@ -22,8 +22,6 @@
 </template>
 
 <script setup lang="ts">
-import { ProductList, RegisterProducts } from "#components";
-
 const tab = ref("home");
 </script>
 
