@@ -346,32 +346,39 @@ export const useIndexStore = defineStore("index", {
         // firebaseに送るメソッド
         const registerDataRef = db.collection("registerData");
         registerDataRef.doc().set(payloadData, { merge: true });
+        this.fetchRegisterData();
+        window.alert("商品を登録しました");
       }
     },
     /**
      * 登録した商品を取得する
      * @param state
      */
-    fetchRegisterData() {
+    async fetchRegisterData() {
       const registerDataRef = db.collection("registerData");
 
-      // stateにセットする
-      registerDataRef.get().then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          this.registerData.push({
-            searchOption: data.searchOption,
-            keyword: data.keyword,
-            name: data.name,
-            image: data.image,
-            brand: data.brand,
-            genreId: data.genreId,
-            genre: data.genre,
-            url: data.url,
-            lastHitUrl: data.lastHitUrl,
-          });
-        });
+      // stateにmapでセットする
+      const registerSnapshot = await registerDataRef.get();
+
+      // DBから1個1個取り出す
+      const items = registerSnapshot.docs.map((item) => {
+        const eachItem = item.data();
+
+        return {
+          searchOption: eachItem.searchOption,
+          keyword: eachItem.keyword,
+          name: eachItem.name,
+          image: eachItem.image,
+          brand: eachItem.brand,
+          genreId: eachItem.genreId,
+          genre: eachItem.genre,
+          url: eachItem.url,
+          lastHitUrl: eachItem.lastHitUrl,
+        };
       });
+
+      // stateにセットする
+      this.registerData = items;
     },
     /**
      * 登録商品の削除
