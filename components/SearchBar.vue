@@ -1,19 +1,21 @@
 <template>
-  <div class="d-flex flex-wrap align-content-center justify-content-center">
-    <v-text-field
-      v-model="store.$state.inputValue"
-      density="compact"
-      label="Search"
-      prepend-inner-icon="mdi-magnify"
-      variant="solo-filled"
-      flat
-      hide-details
-      single-line
-      app
-      color="light"
-      dense
-    >
-    </v-text-field>
+  <v-container class="d-flex flex-wrap align-content-center">
+    <div class="inputTextField">
+      <v-text-field
+        v-model="store.$state.inputValue"
+        density="compact"
+        label="Search"
+        prepend-inner-icon="mdi-magnify"
+        variant="solo-filled"
+        flat
+        hide-details
+        single-line
+        app
+        color="light"
+        dense
+      />
+    </div>
+
     <v-row>
       <v-col cols="12">
         <v-btn-toggle
@@ -22,12 +24,8 @@
           class="mt-1"
           tile
         >
-          <v-btn depressed :value="'yahoo'" @click="searchProducts">
-            Yahooで検索
-          </v-btn>
-          <v-btn depressed :value="'rakuten'" @click="searchProducts">
-            楽天で検索
-          </v-btn>
+          <v-btn :value="'yahoo'" @click="searchProducts"> Yahooで検索 </v-btn>
+          <v-btn :value="'rakuten'" @click="searchProducts"> 楽天で検索 </v-btn>
         </v-btn-toggle>
       </v-col>
     </v-row>
@@ -44,7 +42,7 @@
       </v-col>
     </v-row>
     <SearchOptions v-if="store.$state.filterOn === true" />
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -85,6 +83,9 @@ watch(
 </script>
 
 <style scoped>
+.inputTextField {
+  width: 50%;
+}
 .filter-button {
   margin: 10px;
   background-color: lightblue;

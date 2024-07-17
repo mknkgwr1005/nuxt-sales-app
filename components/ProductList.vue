@@ -12,7 +12,7 @@
       </v-col>
     </v-row>
 
-    <v-row class="d-flex flex-wrap align-content-center justify-content-center">
+    <v-row>
       <v-col cols="12">
         <SearchBar />
       </v-col>

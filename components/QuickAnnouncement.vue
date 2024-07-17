@@ -1,12 +1,12 @@
 <template>
   <v-container class="d-flex flex-wrap justify-content-center">
-    <v-row v-if="store.$state.announceData.length !== 0">
+    <v-row v-if="store.$state.announceData.length !== 0" justify="center">
       <v-col
         v-for="product of store.$state.announceData"
         :key="product?.url"
         cols="auto"
       >
-        <v-card class="card-content m-2">
+        <v-card class="card-content">
           <v-img
             :src="product.imageUrl"
             alt="product.name"
@@ -32,10 +32,10 @@
         </v-card>
       </v-col>
     </v-row>
-    <div>
-      <v-btn @click="searchRegisteredProducts"> 入荷情報を取得 </v-btn>
-    </div>
   </v-container>
+  <v-row justify="center" v-if="store.stopSearchCount > 5">
+    <v-btn @click="searchRegisteredProducts"> refresh </v-btn>
+  </v-row>
 </template>
 <script setup lang="ts">
 const store = useIndexStore();
