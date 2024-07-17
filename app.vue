@@ -7,5 +7,7 @@
 </template>
 
 <script setup lang="ts">
-useSearchRegisteredProducts();
+onMounted(() => {
+  useSearchRegisteredProducts();
+});
 </script>

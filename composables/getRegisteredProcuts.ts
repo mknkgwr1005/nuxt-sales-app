@@ -25,9 +25,16 @@ export const useSearchRegisteredProducts = () => {
       intervalId = window.setInterval(() => {
         console.log("Interval tick");
         getProduct();
-      }, 6000);
+      }, 60000);
     }
     console.log("Interval ID after setInterval:", intervalId);
+  };
+
+  const stopSearchRegisteredProducts = () => {
+    if (intervalId !== null) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
   };
 
   onMounted(() => {
@@ -37,12 +44,8 @@ export const useSearchRegisteredProducts = () => {
 
   onUnmounted(() => {
     console.log("Component unmounted");
-    if (intervalId !== null) {
-      clearInterval(intervalId);
-      intervalId = null;
-    }
+    stopSearchRegisteredProducts();
   });
 
-  //   各Componentや、ページで使えるようにする
-  return { searchRegisteredProducts };
+  return { searchRegisteredProducts, stopSearchRegisteredProducts };
 };
