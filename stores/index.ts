@@ -57,7 +57,7 @@ export const useIndexStore = defineStore("index", {
     registerData: new Array<newArriveItem>(),
     announceData: new Array<commonProducts>(),
     announceSize: 5,
-    stopSearchCount: 3,
+    stopSearchCount: 0,
   }),
   actions: {
     /**
@@ -647,9 +647,13 @@ export const useIndexStore = defineStore("index", {
      */
     async getRegisteredProducts() {
       this.stopSearchCount++;
+      console.log("探してる:" + this.stopSearchCount);
 
       // 検索を最大5回に制限
       if (this.stopSearchCount > 5) {
+        if (this.stopSearchCount === 5) {
+          window.alert("最大検索数に達しました。ページを更新してください。");
+        }
         return;
       }
 
@@ -661,6 +665,8 @@ export const useIndexStore = defineStore("index", {
 
         try {
           if (searchOption === "yahoo") {
+            console.log("ヤフーで検索");
+
             // Yahooのとき
             const { $axios } = useNuxtApp();
             const config = useRuntimeConfig();
@@ -679,7 +685,9 @@ export const useIndexStore = defineStore("index", {
             );
             nowData = response.data.hits[0];
             newUrl = nowData.url;
+            console.log("ヤフーの検索終わり");
           } else if (searchOption === "rakuten") {
+            console.log("楽天で検索");
             // 楽天のとき
             const { $axiosRakuten } = useNuxtApp();
             const config = useRuntimeConfig();
@@ -697,6 +705,7 @@ export const useIndexStore = defineStore("index", {
 
             nowData = response.data.Items[0].Item;
             newUrl = nowData.itemUrl;
+            console.log("楽天で検索終わった");
           }
 
           const registeredUrl = registeredProduct.url;
