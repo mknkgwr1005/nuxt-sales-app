@@ -32,6 +32,9 @@
         </v-card>
       </v-col>
     </v-row>
+    <div>
+      <v-btn @click="searchRegisteredProducts"> 入荷情報を取得 </v-btn>
+    </div>
   </v-container>
 </template>
 <script setup lang="ts">
@@ -41,6 +44,8 @@ const store = useIndexStore();
 const goToUrl = (url: string) => {
   window.open(url, "product");
 };
+
+const { searchRegisteredProducts } = useSearchRegisteredProducts();
 </script>
 
 <style scoped>
