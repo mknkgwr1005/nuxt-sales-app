@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+const store = useIndexStore();
 
 const email = ref("");
 const password = ref("");
@@ -59,6 +60,7 @@ const handleLogin = async () => {
       password.value
     );
     console.log("Logged in:", userCredential.user);
+    store.loginStatus = true;
     router.push("/");
   } catch (error) {
     console.error("Error logging in:", error);

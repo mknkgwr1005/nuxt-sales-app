@@ -7,14 +7,13 @@ import {
   where,
 } from "firebase/firestore";
 import { defineStore } from "pinia";
-import { db } from "~/firebase";
-import { commonProducts } from "~/types/commonProducts";
-import { Category } from "~/types/rakuten/Category";
-import { rktProducts } from "~/types/rakuten/rktProducts";
-import type { newArriveItem } from "~/types/registerProducts/newArriveItem";
-import { apiProducts } from "~/types/yahoo/apiProducts";
-// import axios from "~/plugins/axios";
-import axios from "axios";
+import { db, FirebaseTimestamp } from "@/firebase";
+import { commonProducts } from "@/types/commonProducts";
+import { Category } from "@/types/rakuten/Category";
+import { rktProducts } from "@/types/rakuten/rktProducts";
+import type { newArriveItem } from "@/types/registerProducts/newArriveItem";
+import { apiProducts } from "@/types/yahoo/apiProducts";
+import { userInfo } from "@/types/user/userInfo";
 
 export const useIndexStore = defineStore("index", {
   state: () => ({
@@ -58,6 +57,12 @@ export const useIndexStore = defineStore("index", {
     announceData: new Array<commonProducts>(),
     announceSize: 5,
     stopSearchCount: 0,
+    loginStatus: false,
+    registerUser: {
+      id: "",
+      name: "",
+      mailAddress: "",
+    },
   }),
   actions: {
     /**
@@ -738,6 +743,24 @@ export const useIndexStore = defineStore("index", {
           window.alert(`Error in getRegisteredProducts: ${err.message}`);
         }
       }
+    },
+    async setUserInfo(uid: string, mailAddress: string, password: string) {
+      const initialData = {
+        id: uid,
+        name: "",
+        mailAddress: mailAddress,
+        password: password,
+      };
+      // stateに保存
+      this.registerUser = {
+        id: uid,
+        name: "",
+        mailAddress: mailAddress,
+      };
+      // firestoreに保存
+      // ユーザー登録
+      await db.collection("userInformation").doc(uid).set(initialData);
+      window.alert("ユーザー登録しました");
     },
     getters: {},
   },

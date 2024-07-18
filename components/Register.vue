@@ -32,15 +32,21 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 const email = ref("");
 const password = ref("");
 const router = useRouter();
+const store = useIndexStore();
 
 const handleRegister = async () => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(
+    let userUid = "";
+    await createUserWithEmailAndPassword(
       auth,
       email.value,
       password.value
-    );
-    console.log("Registered:", userCredential.user);
+    ).then((response) => {
+      if (response) {
+        userUid = response.user.uid;
+      }
+    });
+    store.setUserInfo(userUid, email.value, password.value);
     router.push("/");
   } catch (error) {
     console.error("Error registering:", error);
