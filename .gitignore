@@ -25,4 +25,4 @@ logs
 
 #firebase
 firebase/
-plugins/firebase
+plugins/firebase.ts
