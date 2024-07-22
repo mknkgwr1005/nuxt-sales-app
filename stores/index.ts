@@ -7,13 +7,14 @@ import {
   where,
 } from "firebase/firestore";
 import { defineStore } from "pinia";
-import { db, FirebaseTimestamp } from "@/firebase";
+import { auth, db, FirebaseTimestamp } from "@/firebase";
 import { commonProducts } from "@/types/commonProducts";
 import { Category } from "@/types/rakuten/Category";
 import { rktProducts } from "@/types/rakuten/rktProducts";
 import type { newArriveItem } from "@/types/registerProducts/newArriveItem";
 import { apiProducts } from "@/types/yahoo/apiProducts";
 import { userInfo } from "@/types/user/userInfo";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 export const useIndexStore = defineStore("index", {
   state: () => ({
@@ -58,11 +59,12 @@ export const useIndexStore = defineStore("index", {
     announceSize: 5,
     stopSearchCount: 0,
     loginStatus: false,
-    registerUser: {
+    loginUser: {
       id: "",
       name: "",
       mailAddress: "",
     },
+    currentUser: false,
   }),
   actions: {
     /**
@@ -314,6 +316,7 @@ export const useIndexStore = defineStore("index", {
       const payloadData =
         searchOption === "yahoo"
           ? {
+              userId: this.loginUser.id,
               searchOption: this.searchOption,
               keyword: this.inputValue,
               name: payload.name,
@@ -325,6 +328,7 @@ export const useIndexStore = defineStore("index", {
               lastHitUrl: this.lastHitUrl,
             }
           : {
+              userId: this.loginUser.id,
               searchOption: this.searchOption,
               keyword: this.inputValue,
               name: payload.itemName,
@@ -360,30 +364,60 @@ export const useIndexStore = defineStore("index", {
      * @param state
      */
     async fetchRegisterData() {
-      const registerDataRef = db.collection("registerData");
+      if (!this.currentUser) {
+        const registerDataRef = db.collection("registerData");
+        const registerSnapshot = await registerDataRef.get();
 
-      // stateにmapでセットする
-      const registerSnapshot = await registerDataRef.get();
+        // DBから1個1個取り出す
+        const items = registerSnapshot.docs.map((item) => {
+          const eachItem = item.data();
 
-      // DBから1個1個取り出す
-      const items = registerSnapshot.docs.map((item) => {
-        const eachItem = item.data();
+          return {
+            searchOption: eachItem.searchOption,
+            keyword: eachItem.keyword,
+            name: eachItem.name,
+            image: eachItem.image,
+            brand: eachItem.brand,
+            genreId: eachItem.genreId,
+            genre: eachItem.genre,
+            url: eachItem.url,
+            lastHitUrl: eachItem.lastHitUrl,
+          };
+        });
 
-        return {
-          searchOption: eachItem.searchOption,
-          keyword: eachItem.keyword,
-          name: eachItem.name,
-          image: eachItem.image,
-          brand: eachItem.brand,
-          genreId: eachItem.genreId,
-          genre: eachItem.genre,
-          url: eachItem.url,
-          lastHitUrl: eachItem.lastHitUrl,
-        };
-      });
+        // stateにセットする
+        this.registerData = items;
+      } else {
+        try {
+          const registerDataRef = collection(db, "registerData");
+          // Firestore クエリを実行
+          const registerSnapshot = await getDocs(
+            query(registerDataRef, where("userId", "==", this.loginUser.id))
+          );
 
-      // stateにセットする
-      this.registerData = items;
+          // DBから1個1個取り出す
+          const items = registerSnapshot.docs.map((item) => {
+            const eachItem = item.data();
+
+            return {
+              searchOption: eachItem.searchOption,
+              keyword: eachItem.keyword,
+              name: eachItem.name,
+              image: eachItem.image,
+              brand: eachItem.brand,
+              genreId: eachItem.genreId,
+              genre: eachItem.genre,
+              url: eachItem.url,
+              lastHitUrl: eachItem.lastHitUrl,
+            };
+          });
+
+          // stateにセットする
+          this.registerData = items;
+        } catch (error) {
+          console.error("Error fetching registered data:", error);
+        }
+      }
     },
     /**
      * 登録商品の削除
@@ -744,23 +778,76 @@ export const useIndexStore = defineStore("index", {
         }
       }
     },
-    async setUserInfo(uid: string, mailAddress: string, password: string) {
+    /**
+     * ユーザーの新規登録
+     * @param uid
+     * @param mailAddress
+     * @param password
+     */
+    async setUserInfo(uid: string, mailAddress: string) {
       const initialData = {
         id: uid,
         name: "",
         mailAddress: mailAddress,
-        password: password,
       };
       // stateに保存
-      this.registerUser = {
+      this.loginUser = {
         id: uid,
         name: "",
         mailAddress: mailAddress,
       };
       // firestoreに保存
-      // ユーザー登録
-      await db.collection("userInformation").doc(uid).set(initialData);
-      window.alert("ユーザー登録しました");
+      await db
+        .collection("userInformation")
+        .doc(uid)
+        .set(initialData)
+        .then(() => {
+          window.alert("ユーザー登録しました");
+        });
+    },
+    /**
+     * ログイン状態を取得
+     */
+    async fetchUserStatus() {
+      // ログイン状況を確認し、stateにセットする
+      console.log("ログイン状況を確認");
+      const authedUser = auth.currentUser;
+      if (authedUser) {
+        this.currentUser = true;
+      }
+      onAuthStateChanged(auth, (user: any) => {
+        if (user) {
+          console.log(user);
+
+          this.loginUser = {
+            id: user.uid,
+            name: "",
+            mailAddress: user.email,
+          };
+          this.loginStatus = true;
+        } else {
+          this.loginUser = {
+            id: "",
+            name: "",
+            mailAddress: "",
+          };
+          this.loginStatus = false;
+        }
+      });
+    },
+    /**
+     * ログアウト
+     */
+    async logout() {
+      signOut(auth)
+        .then(() => {
+          window.alert("ログアウトしました");
+          this.loginStatus = false;
+          this.$reset();
+        })
+        .catch((error) => {
+          window.alert(error.message);
+        });
     },
     getters: {},
   },

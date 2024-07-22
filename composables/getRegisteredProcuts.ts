@@ -1,8 +1,9 @@
-import { useIndexStore } from "~/stores/index";
+import { useIndexStore } from "@/stores/index";
 import { onMounted, onUnmounted } from "vue";
 
 export const useSearchRegisteredProducts = () => {
   const store = useIndexStore();
+  store.fetchUserStatus(); //ユーザー情報を取得
   let intervalId: number | null = null;
 
   /**

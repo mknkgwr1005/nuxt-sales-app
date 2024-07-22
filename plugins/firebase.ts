@@ -1,5 +1,5 @@
 // plugins/firebase.ts
-import { defineNuxtPlugin } from "#app";
+// import { defineNuxtPlugin } from "#app";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import firebase from "firebase/compat/app";

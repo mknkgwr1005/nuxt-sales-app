@@ -18,7 +18,7 @@
           v-for="registerData in store.registerData"
           :key="registerData.url"
         >
-          <v-card class="cards mb-3" align="center">
+          <v-card class="cards" align="center">
             <v-img :src="registerData.image" height="200px"></v-img>
             <v-card-title>{{ registerData.name }}</v-card-title>
             <v-card-actions>

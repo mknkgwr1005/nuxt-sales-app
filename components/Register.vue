@@ -46,7 +46,7 @@ const handleRegister = async () => {
         userUid = response.user.uid;
       }
     });
-    store.setUserInfo(userUid, email.value, password.value);
+    store.setUserInfo(userUid, email.value);
     router.push("/");
   } catch (error) {
     console.error("Error registering:", error);

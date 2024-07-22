@@ -54,13 +54,15 @@ console.log(props.tab);
 
 const handleLogin = async () => {
   try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
+    await signInWithEmailAndPassword(auth, email.value, password.value).then(
+      (response) => {
+        window.alert("ログインしました");
+        store.fetchUserStatus();
+        if (response.user.email) {
+          store.setUserInfo(response.user.uid, response.user.email);
+        }
+      }
     );
-    console.log("Logged in:", userCredential.user);
-    store.loginStatus = true;
     router.push("/");
   } catch (error) {
     console.error("Error logging in:", error);
