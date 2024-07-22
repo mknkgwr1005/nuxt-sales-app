@@ -7,14 +7,14 @@ import {
   where,
 } from "firebase/firestore";
 import { defineStore } from "pinia";
-import { db } from "~/firebase";
-import { commonProducts } from "~/types/commonProducts";
-import { Category } from "~/types/rakuten/Category";
-import { rktProducts } from "~/types/rakuten/rktProducts";
-import type { newArriveItem } from "~/types/registerProducts/newArriveItem";
-import { apiProducts } from "~/types/yahoo/apiProducts";
-// import axios from "~/plugins/axios";
-import axios from "axios";
+import { auth, db, FirebaseTimestamp } from "@/firebase";
+import { commonProducts } from "@/types/commonProducts";
+import { Category } from "@/types/rakuten/Category";
+import { rktProducts } from "@/types/rakuten/rktProducts";
+import type { newArriveItem } from "@/types/registerProducts/newArriveItem";
+import { apiProducts } from "@/types/yahoo/apiProducts";
+import { userInfo } from "@/types/user/userInfo";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 export const useIndexStore = defineStore("index", {
   state: () => ({
@@ -58,6 +58,13 @@ export const useIndexStore = defineStore("index", {
     announceData: new Array<commonProducts>(),
     announceSize: 5,
     stopSearchCount: 0,
+    loginStatus: false,
+    loginUser: {
+      id: "",
+      name: "",
+      mailAddress: "",
+    },
+    currentUser: false,
   }),
   actions: {
     /**
@@ -309,6 +316,7 @@ export const useIndexStore = defineStore("index", {
       const payloadData =
         searchOption === "yahoo"
           ? {
+              userId: this.loginUser.id,
               searchOption: this.searchOption,
               keyword: this.inputValue,
               name: payload.name,
@@ -320,6 +328,7 @@ export const useIndexStore = defineStore("index", {
               lastHitUrl: this.lastHitUrl,
             }
           : {
+              userId: this.loginUser.id,
               searchOption: this.searchOption,
               keyword: this.inputValue,
               name: payload.itemName,
@@ -355,30 +364,60 @@ export const useIndexStore = defineStore("index", {
      * @param state
      */
     async fetchRegisterData() {
-      const registerDataRef = db.collection("registerData");
+      if (!this.currentUser) {
+        const registerDataRef = db.collection("registerData");
+        const registerSnapshot = await registerDataRef.get();
 
-      // stateにmapでセットする
-      const registerSnapshot = await registerDataRef.get();
+        // DBから1個1個取り出す
+        const items = registerSnapshot.docs.map((item) => {
+          const eachItem = item.data();
 
-      // DBから1個1個取り出す
-      const items = registerSnapshot.docs.map((item) => {
-        const eachItem = item.data();
+          return {
+            searchOption: eachItem.searchOption,
+            keyword: eachItem.keyword,
+            name: eachItem.name,
+            image: eachItem.image,
+            brand: eachItem.brand,
+            genreId: eachItem.genreId,
+            genre: eachItem.genre,
+            url: eachItem.url,
+            lastHitUrl: eachItem.lastHitUrl,
+          };
+        });
 
-        return {
-          searchOption: eachItem.searchOption,
-          keyword: eachItem.keyword,
-          name: eachItem.name,
-          image: eachItem.image,
-          brand: eachItem.brand,
-          genreId: eachItem.genreId,
-          genre: eachItem.genre,
-          url: eachItem.url,
-          lastHitUrl: eachItem.lastHitUrl,
-        };
-      });
+        // stateにセットする
+        this.registerData = items;
+      } else {
+        try {
+          const registerDataRef = collection(db, "registerData");
+          // Firestore クエリを実行
+          const registerSnapshot = await getDocs(
+            query(registerDataRef, where("userId", "==", this.loginUser.id))
+          );
 
-      // stateにセットする
-      this.registerData = items;
+          // DBから1個1個取り出す
+          const items = registerSnapshot.docs.map((item) => {
+            const eachItem = item.data();
+
+            return {
+              searchOption: eachItem.searchOption,
+              keyword: eachItem.keyword,
+              name: eachItem.name,
+              image: eachItem.image,
+              brand: eachItem.brand,
+              genreId: eachItem.genreId,
+              genre: eachItem.genre,
+              url: eachItem.url,
+              lastHitUrl: eachItem.lastHitUrl,
+            };
+          });
+
+          // stateにセットする
+          this.registerData = items;
+        } catch (error) {
+          console.error("Error fetching registered data:", error);
+        }
+      }
     },
     /**
      * 登録商品の削除
@@ -647,7 +686,13 @@ export const useIndexStore = defineStore("index", {
      */
     async getRegisteredProducts() {
       this.stopSearchCount++;
-      console.log("探してる:" + this.stopSearchCount);
+      if (this.registerData.length === 0) {
+        console.log(
+          "商品データがゼロのため、ユーザーのログイン状態を確認します"
+        );
+        this.fetchUserStatus();
+        return;
+      }
 
       // 検索を最大5回に制限
       if (this.stopSearchCount > 5) {
@@ -739,6 +784,86 @@ export const useIndexStore = defineStore("index", {
         }
       }
     },
+    /**
+     * ユーザーの新規登録
+     * @param uid
+     * @param mailAddress
+     * @param password
+     */
+    async setUserInfo(uid: string, mailAddress: string) {
+      const initialData = {
+        id: uid,
+        name: "",
+        mailAddress: mailAddress,
+      };
+      // stateに保存
+      this.loginUser = {
+        id: uid,
+        name: "",
+        mailAddress: mailAddress,
+      };
+      // firestoreに保存
+      await db
+        .collection("userInformation")
+        .doc(uid)
+        .set(initialData)
+        .then(() => {
+          window.alert("ユーザー登録しました");
+        });
+    },
+    /**
+     * ログイン状態を取得
+     */
+    async fetchUserStatus() {
+      // ログイン状況を確認し、stateにセットする
+      console.log("ログイン状況を確認します");
+      const authedUser = auth.currentUser;
+      if (authedUser) {
+        this.currentUser = true;
+      } else {
+        this.currentUser = false;
+      }
+      onAuthStateChanged(auth, (user: any) => {
+        if (user) {
+          this.loginUser = {
+            id: user.uid,
+            name: "",
+            mailAddress: user.email,
+          };
+          this.loginStatus = true;
+        } else {
+          this.loginUser = {
+            id: "",
+            name: "",
+            mailAddress: "",
+          };
+          this.loginStatus = false;
+        }
+      });
+      console.log("ログイン状況を確認しました" + this.loginUser.mailAddress);
+    },
+    /**
+     * ログアウト
+     */
+    async logout() {
+      await signOut(auth)
+        .then(() => {
+          this.loginUser = {
+            id: "",
+            name: "",
+            mailAddress: "",
+          };
+          this.announceData = [];
+          this.loginStatus = false;
+          this.currentUser = false;
+          reloadNuxtApp();
+          window.alert("ログアウトしました");
+        })
+        .catch((error) => {
+          window.alert(error.message);
+        });
+    },
+
     getters: {},
   },
 });

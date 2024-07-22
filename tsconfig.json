@@ -5,6 +5,20 @@
     "types": [
       // 他の設定がある場合、それらを保持
       "./types/nuxt.d.ts"
-    ]
+    ],
+    // firebaseのモジュールを認識させるための設定
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "lib": ["esnext", "dom"],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@/*": ["./*"]
+    }
   }
 }
