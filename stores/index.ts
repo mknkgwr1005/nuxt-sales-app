@@ -693,7 +693,6 @@ export const useIndexStore = defineStore("index", {
         this.fetchUserStatus();
         return;
       }
-      console.log("探してる:" + this.stopSearchCount);
 
       // 検索を最大5回に制限
       if (this.stopSearchCount > 5) {
@@ -821,11 +820,11 @@ export const useIndexStore = defineStore("index", {
       const authedUser = auth.currentUser;
       if (authedUser) {
         this.currentUser = true;
+      } else {
+        this.currentUser = false;
       }
       onAuthStateChanged(auth, (user: any) => {
         if (user) {
-          console.log(user);
-
           this.loginUser = {
             id: user.uid,
             name: "",

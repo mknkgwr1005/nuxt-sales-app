@@ -3,12 +3,10 @@ import { onMounted, onUnmounted } from "vue";
 
 export const useSearchRegisteredProducts = () => {
   const store = useIndexStore();
-  let checkFinished = false;
 
   // ユーザー情報を取得
   const checkLoginStatus = async () => {
     await store.fetchUserStatus();
-    checkFinished = true;
   };
   checkLoginStatus();
 
@@ -32,8 +30,9 @@ export const useSearchRegisteredProducts = () => {
   /**
    * 登録した商品を定期的に検索する
    */
-  const searchRegisteredProducts = () => {
-    fetchProducts();
+  const searchRegisteredProducts = async () => {
+    console.log("searchingRegisteredProducts:" + store.registerData.length);
+    await fetchProducts();
     if (intervalId === null) {
       intervalId = window.setInterval(() => {
         getProduct();
@@ -49,7 +48,6 @@ export const useSearchRegisteredProducts = () => {
   };
 
   onMounted(() => {
-    console.log("Component mounted");
     searchRegisteredProducts();
   });
 
