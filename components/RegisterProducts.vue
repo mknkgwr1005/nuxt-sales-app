@@ -20,6 +20,7 @@
         >
           <v-card class="cards" align="center">
             <v-img :src="registerData.image" height="200px"></v-img>
+            <v-img :src="registerData.image" height="200px"></v-img>
             <v-card-title>{{ registerData.name }}</v-card-title>
             <v-card-actions>
               <v-btn @click="goToUrl(registerData.url)">購入する</v-btn>

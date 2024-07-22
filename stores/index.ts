@@ -283,6 +283,7 @@ export const useIndexStore = defineStore("index", {
      */
     async showNewArriveData(payload: commonProducts) {
       const newItem = payload;
+      console.log(payload);
 
       // 既に存在するアイテムかどうかをチェック
       const isItemExist = this.announceData.some(
@@ -333,7 +334,7 @@ export const useIndexStore = defineStore("index", {
               keyword: this.inputValue,
               name: payload.itemName,
               genreId: payload.genreId,
-              image: payload.itemUrl,
+              image: payload.mediumImageUrls[0].imageUrl,
               url: payload.itemUrl,
               lastHitUrl: this.lastHitUrl,
             };
@@ -398,7 +399,6 @@ export const useIndexStore = defineStore("index", {
           // DBから1個1個取り出す
           const items = registerSnapshot.docs.map((item) => {
             const eachItem = item.data();
-
             return {
               searchOption: eachItem.searchOption,
               keyword: eachItem.keyword,
@@ -757,6 +757,12 @@ export const useIndexStore = defineStore("index", {
 
           // 新しく取得したデータの先頭と、登録している商品のURLが違うときに速報に表示する
           if (newUrl && newUrl !== registeredUrl) {
+            let rakutenImageUrl = "";
+            if (searchOption === "rakuten") {
+              const rakutenImageUrls = nowData.mediumImageUrls;
+              console.log(rakutenImageUrls);
+              rakutenImageUrl = rakutenImageUrls[0].imageUrl;
+            }
             // 速報に表示する commit
             const commonProduct =
               searchOption === "yahoo"
@@ -771,7 +777,7 @@ export const useIndexStore = defineStore("index", {
                 : new commonProducts(
                     nowData.itemName,
                     nowData.itemUrl,
-                    nowData.mediumImageUrls[0],
+                    rakutenImageUrl,
                     nowData.itemPrice,
                     nowData.reviewCount,
                     nowData.reviewAverage
