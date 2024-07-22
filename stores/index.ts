@@ -853,7 +853,6 @@ export const useIndexStore = defineStore("index", {
             name: "",
             mailAddress: "",
           };
-          this.announceData = [];
           this.loginStatus = false;
           this.currentUser = false;
           reloadNuxtApp();

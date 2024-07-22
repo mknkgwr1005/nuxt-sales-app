@@ -62,7 +62,6 @@ const handleLogin = async () => {
       (response) => {
         if (response) {
           window.alert("ログインしました");
-          store.announceData = [];
           store.fetchUserStatus();
           resetPage();
         }
