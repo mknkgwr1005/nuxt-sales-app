@@ -44,8 +44,9 @@ const handleTab = (newTab: string) => {
   tab.value = newTab;
 };
 
-const logout = () => {
-  store.logout();
+const logout = async () => {
+  await store.logout();
+  handleTab("home");
 };
 </script>
 

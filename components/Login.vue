@@ -50,20 +50,23 @@ const changePage = () => {
   emit("update:tab", "Register");
 };
 
+const resetPage = () => {
+  emit("update:tab", "home");
+};
+
 console.log(props.tab);
 
 const handleLogin = async () => {
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value).then(
       (response) => {
-        window.alert("ログインしました");
-        store.fetchUserStatus();
-        if (response.user.email) {
-          store.setUserInfo(response.user.uid, response.user.email);
+        if (response) {
+          window.alert("ログインしました");
+          store.fetchUserStatus();
+          resetPage();
         }
       }
     );
-    router.push("/");
   } catch (error) {
     console.error("Error logging in:", error);
   }

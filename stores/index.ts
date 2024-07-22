@@ -686,6 +686,13 @@ export const useIndexStore = defineStore("index", {
      */
     async getRegisteredProducts() {
       this.stopSearchCount++;
+      if (this.registerData.length === 0) {
+        console.log(
+          "商品データがゼロのため、ユーザーのログイン状態を確認します"
+        );
+        this.fetchUserStatus();
+        return;
+      }
       console.log("探してる:" + this.stopSearchCount);
 
       // 検索を最大5回に制限
@@ -810,7 +817,7 @@ export const useIndexStore = defineStore("index", {
      */
     async fetchUserStatus() {
       // ログイン状況を確認し、stateにセットする
-      console.log("ログイン状況を確認");
+      console.log("ログイン状況を確認します");
       const authedUser = auth.currentUser;
       if (authedUser) {
         this.currentUser = true;
@@ -834,21 +841,29 @@ export const useIndexStore = defineStore("index", {
           this.loginStatus = false;
         }
       });
+      console.log("ログイン状況を確認しました" + this.loginUser.mailAddress);
     },
     /**
      * ログアウト
      */
     async logout() {
-      signOut(auth)
+      await signOut(auth)
         .then(() => {
-          window.alert("ログアウトしました");
+          this.loginUser = {
+            id: "",
+            name: "",
+            mailAddress: "",
+          };
           this.loginStatus = false;
-          this.$reset();
+          this.currentUser = false;
+          reloadNuxtApp();
+          window.alert("ログアウトしました");
         })
         .catch((error) => {
           window.alert(error.message);
         });
     },
+
     getters: {},
   },
 });
