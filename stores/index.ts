@@ -457,47 +457,31 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
+     * 商品説明を文字数制限する
+     * @param text
+     * @param maxLength
+     * @returns
+     */
+    truncateText(text: string | undefined | null, maxLength: number): string {
+      if (!text) {
+        return "";
+      }
+      if (text.length <= maxLength) {
+        return text;
+      }
+      return text.slice(0, maxLength) + "...";
+    },
+    /**
      * yahooの商品を表示するメソッド
      * @param state - yahooの商品リスト
      * @param payload - apiから取得した商品リスト
      */
     showProductList(payload: any) {
       this.productList = new Array<apiProducts>();
-      for (const product of payload) {
-        this.productList.push(
-          new apiProducts(
-            product.index,
-            product.name,
-            product.description,
-            product.headLine,
-            product.url,
-            product.inStock,
-            product.code,
-            product.condition,
-            product.imageId,
-            product.image,
-            product.review,
-            product.offiliateRate,
-            product.price,
-            product.premiumPrice,
-            product.premiumPriceStatus,
-            product.premiumDiscountRate,
-            product.premiumDiscountType,
-            product.priceLabel,
-            product.point,
-            product.shipping,
-            product.genreCategory,
-            product.parentGenreCategories,
-            product.brand,
-            product.parentBrands,
-            product.janCode,
-            product.payment,
-            product.releaseDate,
-            product.seller,
-            product.delivery
-          )
-        );
-      }
+      this.productList = payload.map((item: any) => ({
+        ...item,
+        truncatedDescription: this.truncateText(item.description, 100), // 文字数を制限する
+      }));
     },
     /**
      * yahooの子カテゴリを表示する

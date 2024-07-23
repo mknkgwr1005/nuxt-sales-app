@@ -24,7 +24,12 @@
         v-for="product of store.productList"
         :key="product.index"
       >
-        <v-card class="mb-3" :title="product.name">
+        <v-card
+          class="mb-3"
+          :title="product.name"
+          height="500px"
+          :width="changeCardWidth(product.truncatedDescription)"
+        >
           <v-img
             class="align-end text-white"
             height="200"
@@ -39,7 +44,7 @@
             <v-btn text @click="sortGenre(product.genreCategory.id)">
               #{{ product.genreCategory.name }}
             </v-btn>
-            <p>{{ product.description }}</p>
+            <p>{{ product.truncatedDescription }}</p>
             <v-btn color="primary" @click="goToUrl(product.url)"
               >購入する</v-btn
             >
@@ -98,16 +103,13 @@
 
 <script setup lang="ts">
 import { QuickAnnouncement, SearchBar } from "#components";
-// importすることによって、templateに表示される
 import "../assets/products/noimage.jpg";
 const store = useIndexStore();
-// 速報する商品に登録する
 
 const register = (product: any) => {
   store.setRegisterData(product);
 };
 
-//  外部URLに遷移する
 const goToUrl = (url: string) => {
   window.location.href = url;
 };
@@ -120,13 +122,23 @@ const handlePage = () => {
   }
 };
 
-// タグをクリックすると、ジャンルタグで絞り込む
 const sortGenre = async (value: string) => {
   store.sortGenre(value);
   if (store.searchOption === "yahoo") {
     store.getProductList();
   } else {
     store.getRktProductList();
+  }
+};
+
+const changeCardWidth = (description: string) => {
+  const length = description.length;
+  if (length < 50) {
+    return "300px";
+  } else if (length < 100) {
+    return "400px";
+  } else {
+    return "500px";
   }
 };
 </script>
@@ -137,4 +149,3 @@ const sortGenre = async (value: string) => {
   justify-content: center;
 }
 </style>
-payload: any, product: any$state: unknown, payload: string
