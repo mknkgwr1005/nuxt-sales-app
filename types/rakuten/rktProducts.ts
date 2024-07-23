@@ -36,7 +36,8 @@ export class rktProducts {
     private _smallImageUrls: Array<rktImage>,
     private _startTime: string,
     private _tagIds: Array<rktTag>,
-    private _taxFlag: number
+    private _taxFlag: number,
+    private _truncatedDescription: string
   ) {}
 
   public get affiliateRate(): number {
@@ -317,5 +318,12 @@ export class rktProducts {
 
   public set taxFlag(taxFlag: number) {
     this._taxFlag = taxFlag;
+  }
+  public get truncatedDescription(): string {
+    return this._truncatedDescription;
+  }
+
+  public set truncatedDescription(truncatedDescription: string) {
+    this._truncatedDescription = truncatedDescription;
   }
 }

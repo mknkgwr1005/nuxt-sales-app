@@ -62,10 +62,15 @@
         v-for="rktProduct of store.rktProductList"
         :key="rktProduct.affiliateUrl"
       >
-        <v-card class="mb-3" :title="rktProduct.itemName">
+        <v-card
+          class="mb-3"
+          :title="rktProduct.itemName"
+          height="500px"
+          :width="changeCardWidth(rktProduct.truncatedDescription)"
+        >
           <v-img
             :src="
-              rktProduct.mediumImageUrls.length > 0
+              rktProduct.mediumImageUrls
                 ? rktProduct.mediumImageUrls[0].imageUrl
                 : '../assets/products/noimage.jpg'
             "
@@ -74,7 +79,7 @@
           ></v-img>
           <v-card-text>
             <h6 class="card-subtitle">&yen;{{ rktProduct.itemPrice }}</h6>
-            <p>{{ rktProduct.itemCaption }}</p>
+            <p>{{ rktProduct.truncatedDescription }}</p>
             <v-btn color="primary" @click="goToUrl(rktProduct.itemUrl)"
               >購入する</v-btn
             >

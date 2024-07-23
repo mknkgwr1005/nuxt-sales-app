@@ -527,47 +527,10 @@ export const useIndexStore = defineStore("index", {
      */
     showRktProductList(payload: any) {
       this.rktProductList = new Array<rktProducts>();
-      for (const rktProduct of payload) {
-        this.rktProductList.push(
-          new rktProducts(
-            rktProduct.Item.affiliateRate,
-            rktProduct.Item.affiliateUrl,
-            rktProduct.Item.asurakuArea,
-            rktProduct.Item.asurakuClosingTime,
-            rktProduct.Item.asurakuFlag,
-            rktProduct.Item.availability,
-            rktProduct.Item.catchcopy,
-            rktProduct.Item.creditCardFlag,
-            rktProduct.Item.endTime,
-            rktProduct.Item.genreId,
-            rktProduct.Item.giftFlag,
-            rktProduct.Item.imageFlag,
-            rktProduct.Item.itemCaption,
-            rktProduct.Item.itemCode,
-            rktProduct.Item.itemName,
-            rktProduct.Item.itemPrice,
-            rktProduct.Item.itemUrl,
-            rktProduct.Item.mediumImageUrls,
-            rktProduct.Item.pointRate,
-            rktProduct.Item.pointRateEndTime,
-            rktProduct.Item.pointRateStartTime,
-            rktProduct.Item.postageFlag,
-            rktProduct.Item.reviewAverage,
-            rktProduct.Item.reviewCount,
-            rktProduct.Item.shipOverseasArea,
-            rktProduct.Item.shipOverseasFlag,
-            rktProduct.Item.shopAffiliateUrl,
-            rktProduct.Item.shopCode,
-            rktProduct.Item.shopName,
-            rktProduct.Item.shopOfTheYearFlag,
-            rktProduct.Item.shopUrl,
-            rktProduct.Item.smallImageUrls,
-            rktProduct.Item.startTime,
-            rktProduct.Item.tagIds,
-            rktProduct.Item.taxFlag
-          )
-        );
-      }
+      this.rktProductList = payload.map((item: any) => ({
+        ...item.Item,
+        truncatedDescription: this.truncateText(item.Item.itemCaption, 100), // 文字数を制限する
+      }));
     },
     /**
      * 楽天のカテゴリを表示する
