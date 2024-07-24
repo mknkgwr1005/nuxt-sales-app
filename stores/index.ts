@@ -283,6 +283,7 @@ export const useIndexStore = defineStore("index", {
      */
     async showNewArriveData(payload: commonProducts) {
       const newItem = payload;
+      console.log(payload);
 
       // 既に存在するアイテムかどうかをチェック
       const isItemExist = this.announceData.some(
@@ -333,7 +334,7 @@ export const useIndexStore = defineStore("index", {
               keyword: this.inputValue,
               name: payload.itemName,
               genreId: payload.genreId,
-              image: payload.itemUrl,
+              image: payload.mediumImageUrls[0].imageUrl,
               url: payload.itemUrl,
               lastHitUrl: this.lastHitUrl,
             };
@@ -398,7 +399,6 @@ export const useIndexStore = defineStore("index", {
           // DBから1個1個取り出す
           const items = registerSnapshot.docs.map((item) => {
             const eachItem = item.data();
-
             return {
               searchOption: eachItem.searchOption,
               keyword: eachItem.keyword,
@@ -457,47 +457,31 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
+     * 商品説明を文字数制限する
+     * @param text
+     * @param maxLength
+     * @returns
+     */
+    truncateText(text: string | undefined | null, maxLength: number): string {
+      if (!text) {
+        return "";
+      }
+      if (text.length <= maxLength) {
+        return text;
+      }
+      return text.slice(0, maxLength) + "...";
+    },
+    /**
      * yahooの商品を表示するメソッド
      * @param state - yahooの商品リスト
      * @param payload - apiから取得した商品リスト
      */
     showProductList(payload: any) {
       this.productList = new Array<apiProducts>();
-      for (const product of payload) {
-        this.productList.push(
-          new apiProducts(
-            product.index,
-            product.name,
-            product.description,
-            product.headLine,
-            product.url,
-            product.inStock,
-            product.code,
-            product.condition,
-            product.imageId,
-            product.image,
-            product.review,
-            product.offiliateRate,
-            product.price,
-            product.premiumPrice,
-            product.premiumPriceStatus,
-            product.premiumDiscountRate,
-            product.premiumDiscountType,
-            product.priceLabel,
-            product.point,
-            product.shipping,
-            product.genreCategory,
-            product.parentGenreCategories,
-            product.brand,
-            product.parentBrands,
-            product.janCode,
-            product.payment,
-            product.releaseDate,
-            product.seller,
-            product.delivery
-          )
-        );
-      }
+      this.productList = payload.map((item: any) => ({
+        ...item,
+        truncatedDescription: this.truncateText(item.description, 100), // 文字数を制限する
+      }));
     },
     /**
      * yahooの子カテゴリを表示する
@@ -543,47 +527,10 @@ export const useIndexStore = defineStore("index", {
      */
     showRktProductList(payload: any) {
       this.rktProductList = new Array<rktProducts>();
-      for (const rktProduct of payload) {
-        this.rktProductList.push(
-          new rktProducts(
-            rktProduct.Item.affiliateRate,
-            rktProduct.Item.affiliateUrl,
-            rktProduct.Item.asurakuArea,
-            rktProduct.Item.asurakuClosingTime,
-            rktProduct.Item.asurakuFlag,
-            rktProduct.Item.availability,
-            rktProduct.Item.catchcopy,
-            rktProduct.Item.creditCardFlag,
-            rktProduct.Item.endTime,
-            rktProduct.Item.genreId,
-            rktProduct.Item.giftFlag,
-            rktProduct.Item.imageFlag,
-            rktProduct.Item.itemCaption,
-            rktProduct.Item.itemCode,
-            rktProduct.Item.itemName,
-            rktProduct.Item.itemPrice,
-            rktProduct.Item.itemUrl,
-            rktProduct.Item.mediumImageUrls,
-            rktProduct.Item.pointRate,
-            rktProduct.Item.pointRateEndTime,
-            rktProduct.Item.pointRateStartTime,
-            rktProduct.Item.postageFlag,
-            rktProduct.Item.reviewAverage,
-            rktProduct.Item.reviewCount,
-            rktProduct.Item.shipOverseasArea,
-            rktProduct.Item.shipOverseasFlag,
-            rktProduct.Item.shopAffiliateUrl,
-            rktProduct.Item.shopCode,
-            rktProduct.Item.shopName,
-            rktProduct.Item.shopOfTheYearFlag,
-            rktProduct.Item.shopUrl,
-            rktProduct.Item.smallImageUrls,
-            rktProduct.Item.startTime,
-            rktProduct.Item.tagIds,
-            rktProduct.Item.taxFlag
-          )
-        );
-      }
+      this.rktProductList = payload.map((item: any) => ({
+        ...item.Item,
+        truncatedDescription: this.truncateText(item.Item.itemCaption, 100), // 文字数を制限する
+      }));
     },
     /**
      * 楽天のカテゴリを表示する
@@ -757,6 +704,12 @@ export const useIndexStore = defineStore("index", {
 
           // 新しく取得したデータの先頭と、登録している商品のURLが違うときに速報に表示する
           if (newUrl && newUrl !== registeredUrl) {
+            let rakutenImageUrl = "";
+            if (searchOption === "rakuten") {
+              const rakutenImageUrls = nowData.mediumImageUrls;
+              console.log(rakutenImageUrls);
+              rakutenImageUrl = rakutenImageUrls[0].imageUrl;
+            }
             // 速報に表示する commit
             const commonProduct =
               searchOption === "yahoo"
@@ -771,7 +724,7 @@ export const useIndexStore = defineStore("index", {
                 : new commonProducts(
                     nowData.itemName,
                     nowData.itemUrl,
-                    nowData.mediumImageUrls[0],
+                    rakutenImageUrl,
                     nowData.itemPrice,
                     nowData.reviewCount,
                     nowData.reviewAverage

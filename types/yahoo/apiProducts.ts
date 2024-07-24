@@ -43,17 +43,9 @@ export class apiProducts {
     private _payment: string,
     private _releaseDate: string,
     private _seller: Array<Seller>,
-    private _delivery: Array<Delivery>
+    private _delivery: Array<Delivery>,
+    private _truncatedDescription: string
   ) {}
-
-  /**
-   * 説明文をフォーマットする
-   */
-  get formatDescription(): string {
-    const str = this._description;
-    const formatDescription = str.replace("<br>", "\n");
-    return formatDescription;
-  }
 
   public get index(): number {
     return this._index;
@@ -287,5 +279,13 @@ export class apiProducts {
 
   public set delivery(delivery: Array<Delivery>) {
     this._delivery = delivery;
+  }
+
+  public get truncatedDescription(): string {
+    return this._truncatedDescription;
+  }
+
+  public set truncatedDescription(truncatedDescription: string) {
+    this._truncatedDescription = truncatedDescription;
   }
 }

@@ -37,11 +37,7 @@
         store.filterOn
       "
     >
-      <v-col cols="12" class="text-center">
-        <v-btn class="filter-button" @click="setFilterOn">絞り込み</v-btn>
-      </v-col>
     </v-row>
-    <SearchOptions v-if="store.$state.filterOn === true" />
   </v-container>
 </template>
 

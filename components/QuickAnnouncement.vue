@@ -6,7 +6,7 @@
         :key="product?.url"
         cols="auto"
       >
-        <v-card class="card-content">
+        <v-card class="card-content" width="200px">
           <v-img
             :src="product.imageUrl"
             alt="product.name"
