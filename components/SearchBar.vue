@@ -24,8 +24,12 @@
           class="mt-1"
           tile
         >
-          <v-btn :value="'yahoo'" @click="searchProducts"> Yahooで検索 </v-btn>
-          <v-btn :value="'rakuten'" @click="searchProducts"> 楽天で検索 </v-btn>
+          <v-btn :value="'yahoo'" @click="useSearchProducts()">
+            Yahooで検索
+          </v-btn>
+          <v-btn :value="'rakuten'" @click="useSearchProducts()">
+            楽天で検索
+          </v-btn>
         </v-btn-toggle>
       </v-col>
     </v-row>
@@ -42,29 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { SearchOptions } from "#components";
-
 const store = useIndexStore();
-// 商品一覧を取得する
-const searchProducts = async () => {
-  console.log("search");
-
-  const searchOption = store.$state.searchOption;
-
-  if (searchOption === "yahoo") {
-    store.getProductList();
-    store.findCategoryDetail();
-  } else if (searchOption === "rakuten") {
-    store.getRktProductList();
-    store.findRktChildCategory();
-  } else {
-    return;
-  }
-};
-const setFilterOn = () => {
-  store.setFilterOn();
-  searchProducts();
-};
 
 // resultsの監視
 watch(

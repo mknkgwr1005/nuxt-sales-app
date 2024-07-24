@@ -58,7 +58,7 @@
         <v-form>
           <v-select
             class="child-genre"
-            v-if="store.genre"
+            v-if="store.genre && store.childGenre.length !== 0"
             :items="store.childGenre"
             label="子カテゴリ"
             item-value="value"
@@ -66,6 +66,7 @@
             outlined
           />
         </v-form>
+        <v-btn color="primary" @click="useSearchProducts()">絞り込み</v-btn>
       </v-col>
     </v-row>
   </v-container>

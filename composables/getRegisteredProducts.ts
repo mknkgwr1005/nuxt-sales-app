@@ -31,7 +31,6 @@ export const useSearchRegisteredProducts = () => {
    * 登録した商品を定期的に検索する
    */
   const searchRegisteredProducts = async () => {
-    console.log("searchingRegisteredProducts:" + store.registerData.length);
     await fetchProducts();
     if (intervalId === null) {
       intervalId = window.setInterval(() => {

@@ -135,7 +135,6 @@
 </template>
 
 <script setup lang="ts">
-import { useIndexStore } from "~/stores/index"; // ストアのインポート
 import "../assets/products/noimage.jpg";
 
 const store = useIndexStore();
@@ -158,11 +157,7 @@ const handlePage = () => {
 
 const sortGenre = async (value: string) => {
   store.sortGenre(value);
-  if (store.searchOption === "yahoo") {
-    store.getProductList();
-  } else {
-    store.getRktProductList();
-  }
+  useSearchProducts();
 };
 
 const changeCardWidth = (description: string) => {
