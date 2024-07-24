@@ -43,7 +43,7 @@
         >
           {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
         </div>
-        <v-row v-if="store.productList.length !== 0" justify="center">
+        <v-row v-if="store.productList.length !== 0" justify="space-around">
           <v-col
             cols="auto"
             v-for="product of store.productList"
@@ -135,7 +135,6 @@
 </template>
 
 <script setup lang="ts">
-import { useIndexStore } from "~/stores/index"; // ストアのインポート
 import "../assets/products/noimage.jpg";
 
 const store = useIndexStore();
@@ -158,21 +157,15 @@ const handlePage = () => {
 
 const sortGenre = async (value: string) => {
   store.sortGenre(value);
-  if (store.searchOption === "yahoo") {
-    store.getProductList();
-  } else {
-    store.getRktProductList();
-  }
+  useSearchProducts();
 };
 
 const changeCardWidth = (description: string) => {
   const length = description.length;
-  if (length < 50) {
+  if (length < 100) {
     return "300px";
-  } else if (length < 100) {
-    return "400px";
   } else {
-    return "500px";
+    return "400px";
   }
 };
 </script>
