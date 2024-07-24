@@ -1,114 +1,143 @@
 <template>
   <v-container fluid>
+    <!-- Header -->
     <v-row>
       <v-col cols="12">
         <h1 class="text-center">商品検索アプリ</h1>
       </v-col>
     </v-row>
-
+    <!-- 入荷情報 -->
     <v-row>
       <v-col cols="12">
         <QuickAnnouncement />
       </v-col>
     </v-row>
-
+    <!-- 検索バー -->
     <v-row>
       <v-col cols="12">
         <SearchBar />
       </v-col>
     </v-row>
 
-    <v-row v-if="store.productList.length !== 0" justify="center">
+    <!-- Main Content -->
+    <v-row>
+      <!-- Sidebar (Search Options) -->
       <v-col
-        cols="auto"
-        v-for="product of store.productList"
-        :key="product.index"
+        cols="3"
+        v-if="
+          store.productList.length !== 0 || store.rktProductList.length !== 0
+        "
       >
-        <v-card
-          class="mb-3"
-          :title="product.name"
-          height="500px"
-          :width="changeCardWidth(product.truncatedDescription)"
-        >
-          <v-img
-            class="align-end text-white"
-            height="200"
-            :src="
-              product.image.medium
-                ? product.image.medium
-                : `./assets/products/noimage.jpg`
-            "
-          ></v-img>
-          <v-card-text>
-            <h6 class="card-subtitle">&yen;{{ product.price }}</h6>
-            <v-btn text @click="sortGenre(product.genreCategory.id)">
-              #{{ product.genreCategory.name }}
-            </v-btn>
-            <p>{{ product.truncatedDescription }}</p>
-            <v-btn color="primary" @click="goToUrl(product.url)"
-              >購入する</v-btn
-            >
-            <v-btn color="success" @click="register(product)"
-              >この商品を登録する</v-btn
-            >
-          </v-card-text>
+        <v-card class="mb-3" height="auto">
+          <SearchOptions />
         </v-card>
       </v-col>
-    </v-row>
 
-    <v-row v-if="store.rktProductList.length !== 0" justify="center">
-      <v-col
-        cols="auto"
-        v-for="rktProduct of store.rktProductList"
-        :key="rktProduct.affiliateUrl"
-      >
-        <v-card
-          class="mb-3"
-          :title="rktProduct.itemName"
-          height="500px"
-          :width="changeCardWidth(rktProduct.truncatedDescription)"
+      <!-- Product List -->
+      <v-col cols="9">
+        <div
+          width="100%"
+          v-if="
+            store.productList.length !== 0 || store.rktProductList.length !== 0
+          "
         >
-          <v-img
-            :src="
-              rktProduct.mediumImageUrls
-                ? rktProduct.mediumImageUrls[0].imageUrl
-                : '../assets/products/noimage.jpg'
-            "
-            class="white--text"
-            height="200px"
-          ></v-img>
-          <v-card-text>
-            <h6 class="card-subtitle">&yen;{{ rktProduct.itemPrice }}</h6>
-            <p>{{ rktProduct.truncatedDescription }}</p>
-            <v-btn color="primary" @click="goToUrl(rktProduct.itemUrl)"
-              >購入する</v-btn
+          {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
+        </div>
+        <v-row v-if="store.productList.length !== 0" justify="center">
+          <v-col
+            cols="auto"
+            v-for="product of store.productList"
+            :key="product.index"
+          >
+            <v-card
+              class="mb-3"
+              :title="product.name"
+              height="500px"
+              :width="changeCardWidth(product.truncatedDescription)"
             >
-            <v-btn color="success" @click="register(rktProduct)"
-              >この商品を登録する</v-btn
-            >
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+              <v-img
+                class="align-end text-white"
+                height="200"
+                :src="
+                  product.image.medium
+                    ? product.image.medium
+                    : `./assets/products/noimage.jpg`
+                "
+              ></v-img>
+              <v-card-text>
+                <h6 class="card-subtitle">&yen;{{ product.price }}</h6>
+                <v-btn text @click="sortGenre(product.genreCategory.id)">
+                  #{{ product.genreCategory.name }}
+                </v-btn>
+                <p>{{ product.truncatedDescription }}</p>
+                <v-btn color="primary" @click="goToUrl(product.url)"
+                  >購入する</v-btn
+                >
+                <v-btn color="success" @click="register(product)"
+                  >この商品を登録する</v-btn
+                >
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-    <v-row v-if="store.totalPageNum > 0">
-      <v-col cols="12" class="overflow-auto">
-        <v-pagination
-          v-model="store.currentPageNum"
-          :length="store.totalPageNum"
-          :total-visible="10"
-          first-icon="mdi-chevron-double-left"
-          last-icon="mdi-chevron-double-right"
-          @update:modelValue="handlePage"
-        ></v-pagination>
+        <v-row v-if="store.rktProductList.length !== 0" justify="center">
+          <v-col
+            cols="auto"
+            v-for="rktProduct of store.rktProductList"
+            :key="rktProduct.affiliateUrl"
+          >
+            <v-card
+              class="mb-3"
+              :title="rktProduct.itemName"
+              height="500px"
+              :width="changeCardWidth(rktProduct.truncatedDescription)"
+            >
+              <v-img
+                :src="
+                  rktProduct.mediumImageUrls
+                    ? rktProduct.mediumImageUrls[0].imageUrl
+                    : '../assets/products/noimage.jpg'
+                "
+                class="white--text"
+                height="200px"
+              ></v-img>
+              <v-card-text>
+                <h6 class="card-subtitle">&yen;{{ rktProduct.itemPrice }}</h6>
+                <p>{{ rktProduct.truncatedDescription }}</p>
+                <v-btn color="primary" @click="goToUrl(rktProduct.itemUrl)"
+                  >購入する</v-btn
+                >
+                <v-btn color="success" @click="register(rktProduct)"
+                  >この商品を登録する</v-btn
+                >
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Pagination -->
+        <v-row v-if="store.totalPageNum > 0">
+          <v-col cols="12" class="overflow-auto">
+            <v-pagination
+              v-model="store.currentPageNum"
+              :length="store.totalPageNum"
+              :total-visible="10"
+              first-icon="mdi-chevron-double-left"
+              last-icon="mdi-chevron-double-right"
+              @update:modelValue="handlePage"
+            ></v-pagination>
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { QuickAnnouncement, SearchBar } from "#components";
+import { useIndexStore } from "~/stores/index"; // ストアのインポート
 import "../assets/products/noimage.jpg";
+
 const store = useIndexStore();
 
 const register = (product: any) => {

@@ -2,8 +2,14 @@
   <v-container>
     <v-row class="d-flex flex-wrap justify-center">
       <v-col cols="auto">
+        <p>キーワード</p>
+        <v-chip>
+          {{ store.inputValue }}
+        </v-chip>
+        <div>　　</div>
         <v-form>
           <v-select
+            class="display-data option"
             v-model="store.results"
             :items="store.displayData"
             label="表示数"
@@ -12,10 +18,9 @@
             outlined
           ></v-select>
         </v-form>
-      </v-col>
-      <v-col cols="auto">
         <v-form>
           <v-select
+            class="change-order option"
             v-model="store.sort"
             :items="store.changeOrderData"
             label="並び順"
@@ -25,10 +30,9 @@
             outlined
           ></v-select>
         </v-form>
-      </v-col>
-      <v-col cols="auto">
         <v-form>
           <v-select
+            class="genre option"
             v-if="store.searchOption === 'yahoo'"
             v-model="store.genre"
             :items="store.yahooCategory"
@@ -40,6 +44,7 @@
             outlined
           />
           <v-select
+            class="genre option"
             v-if="store.searchOption === 'rakuten'"
             v-model="store.genre"
             :items="store.rktCategory"
@@ -52,6 +57,7 @@
         </v-form>
         <v-form>
           <v-select
+            class="child-genre"
             v-if="store.genre"
             :items="store.childGenre"
             label="子カテゴリ"
@@ -62,23 +68,10 @@
         </v-form>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col cols="12">
-        <p
-          v-if="
-            store.productList.length !== 0 || store.rktProductList.length !== 0
-          "
-        >
-          {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
-        </p>
-      </v-col>
-    </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { useIndexStore } from "~/stores/index"; // ストアのインポート
-
 const store = useIndexStore();
 
 const updateChildCategory = () => {
@@ -102,3 +95,9 @@ watch(
   }
 );
 </script>
+
+<style scoped>
+.option {
+  width: 200px;
+}
+</style>
