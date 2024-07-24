@@ -580,6 +580,9 @@ export const useIndexStore = defineStore("index", {
         this.productsPerPage = totalResults;
         // 総ページ数
         this.totalPageNum = Math.ceil(this.totalProductsNum / totalResults);
+        if (this.totalPageNum >= 100) {
+          this.totalPageNum = 50;
+        }
       } else if (this.searchOption === "rakuten") {
         // 総商品数
         const rktTotalProduct = payload.count;

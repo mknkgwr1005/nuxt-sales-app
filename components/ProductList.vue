@@ -43,7 +43,7 @@
         >
           {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
         </div>
-        <v-row v-if="store.productList.length !== 0" justify="center">
+        <v-row v-if="store.productList.length !== 0" justify="space-around">
           <v-col
             cols="auto"
             v-for="product of store.productList"
@@ -162,12 +162,10 @@ const sortGenre = async (value: string) => {
 
 const changeCardWidth = (description: string) => {
   const length = description.length;
-  if (length < 50) {
+  if (length < 100) {
     return "300px";
-  } else if (length < 100) {
-    return "400px";
   } else {
-    return "500px";
+    return "400px";
   }
 };
 </script>
