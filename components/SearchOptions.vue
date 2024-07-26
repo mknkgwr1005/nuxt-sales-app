@@ -66,7 +66,7 @@
             outlined
           />
         </v-form>
-        <v-btn color="primary" @click="useSearchProducts()">絞り込み</v-btn>
+        <v-btn color="primary" @click="sortGenre()">絞り込み</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -83,6 +83,11 @@ const updateChildCategory = () => {
       store.findRktChildCategory();
     }
   }
+};
+
+const sortGenre = () => {
+  store.setFilterOn();
+  useSearchProducts();
 };
 
 // resultsの監視

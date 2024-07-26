@@ -1,19 +1,19 @@
 <template>
   <v-container fluid>
     <!-- Header -->
-    <v-row>
+    <v-row class="d-flex align-center justify-center">
       <v-col cols="12">
-        <h1 class="text-center">商品検索アプリ</h1>
+        <img src="../assets/img/main.png" alt="" />
       </v-col>
     </v-row>
     <!-- 入荷情報 -->
-    <v-row>
+    <v-row margin="auto">
       <v-col cols="12">
         <QuickAnnouncement />
       </v-col>
     </v-row>
     <!-- 検索バー -->
-    <v-row>
+    <v-row margin="auto">
       <v-col cols="12">
         <SearchBar />
       </v-col>
@@ -43,7 +43,11 @@
         >
           {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
         </div>
-        <v-row v-if="store.productList.length !== 0" justify="space-around">
+        <v-row
+          v-if="store.productList.length !== 0"
+          justify="space-around"
+          width="500px"
+        >
           <v-col
             cols="auto"
             v-for="product of store.productList"
@@ -81,7 +85,7 @@
           </v-col>
         </v-row>
 
-        <v-row v-if="store.rktProductList.length !== 0" justify="center">
+        <v-row v-if="store.rktProductList.length !== 0" justify="space-around">
           <v-col
             cols="auto"
             v-for="rktProduct of store.rktProductList"

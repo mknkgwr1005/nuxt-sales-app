@@ -1,18 +1,19 @@
 <template>
   <v-container class="d-flex flex-wrap justify-content-center">
-    <v-row v-if="store.$state.announceData.length !== 0" justify="center">
+    <v-row dense v-if="store.$state.announceData.length !== 0" justify="center">
       <v-col
         v-for="product of store.$state.announceData"
         :key="product?.url"
         cols="auto"
+        md="2"
       >
-        <v-card class="card-content" width="200px">
+        <v-card class="card-content" width="200px" height="500px" border flat>
           <v-img
             :src="product.imageUrl"
             alt="product.name"
             class="white--text"
             height="200px"
-          ></v-img>
+          />
           <v-card-text class="card-text">
             <p id="product-name">
               {{ product.name }}
