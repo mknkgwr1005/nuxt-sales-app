@@ -11,14 +11,17 @@
           <h2>登録した商品</h2>
         </v-col>
       </v-row>
-      <v-row class="d-inline-flex flex-wrap justify-content-center">
+      <v-row
+        class="d-inline-flex flex-wrap justify-content-center"
+        justify="space-around"
+      >
         <v-col
           cols="12"
           md="4"
           v-for="registerData in store.registerData"
           :key="registerData.url"
         >
-          <v-card class="cards" align="center">
+          <v-card class="cards" align="flex" width="500px">
             <v-img :src="registerData.image" height="200px"></v-img>
             <v-img :src="registerData.image" height="200px"></v-img>
             <v-card-title>{{ registerData.name }}</v-card-title>
