@@ -56,7 +56,8 @@ export const useIndexStore = defineStore("index", {
     lastHitUrl: "",
     registerData: new Array<newArriveItem>(),
     announceData: new Array<commonProducts>(),
-    announceSize: 5,
+    newAnnounceData: new Array<commonProducts>(),
+    announceSize: 3,
     stopSearchCount: 0,
     loginStatus: false,
     loginUser: {
@@ -65,6 +66,9 @@ export const useIndexStore = defineStore("index", {
       mailAddress: "",
     },
     currentUser: false,
+    currentIndex: 0,
+    leftCarousel: true, //戻る
+    rightCarousel: false, //次へ
   }),
   actions: {
     /**
@@ -100,7 +104,6 @@ export const useIndexStore = defineStore("index", {
         resultsNum = this.productsPerPage;
       }
       if (this.currentPageNum !== 1) {
-        console.log(this.currentPageNum);
         this.goToNextPage();
       }
       const { $axios } = useNuxtApp();
@@ -268,8 +271,6 @@ export const useIndexStore = defineStore("index", {
      * 前のカテゴリを削除する
      */
     resetGenreCategory() {
-      console.log("reset");
-
       this.genre = "";
       this.childGenre = [];
       this.results = 20;
@@ -277,13 +278,12 @@ export const useIndexStore = defineStore("index", {
       this.currentPageNum = 1;
     },
     /**
-     * 速報を表示する
+     * 速報をstateに保存する
      * @param state
      * @param payload
      */
-    async showNewArriveData(payload: commonProducts) {
+    async setNewArriveData(payload: commonProducts) {
       const newItem = payload;
-      console.log(payload);
 
       // 既に存在するアイテムかどうかをチェック
       const isItemExist = this.announceData.some(
@@ -291,12 +291,50 @@ export const useIndexStore = defineStore("index", {
       );
 
       if (!isItemExist) {
-        // 配列のサイズを制限する（例：最大10件まで）
-        if (this.announceData.length >= this.announceSize) {
-          this.announceData.shift(); // 古いアイテムを削除
-        }
-
         this.announceData.push(payload);
+        this.handleAnnouncement();
+      }
+    },
+    /**
+     *　入荷情報で、表示用のデータを変更する
+     */
+    handleAnnouncement() {
+      const start = this.currentIndex;
+      const end = start + this.announceSize;
+
+      const displayData = this.announceData.slice(start, end);
+      this.newAnnounceData = displayData;
+      if (this.currentIndex - this.announceSize < 0) {
+        this.leftCarousel = true;
+      } else {
+        this.leftCarousel = false;
+      }
+      if (this.currentIndex + this.announceSize > this.announceData.length) {
+        this.rightCarousel = true;
+      } else {
+        this.rightCarousel = false;
+      }
+    },
+    /**
+     * 速報の表示‐次ページへ行く
+     * @returns
+     */
+    updateIndex() {
+      const allData = this.announceData.length;
+      if (this.currentIndex + this.announceSize < allData) {
+        this.currentIndex += this.announceSize;
+      } else {
+        return;
+      }
+    },
+    /**
+     * 速報の表示－前のページへ行く
+     */
+    backIndex() {
+      if (this.currentIndex - this.announceSize >= 0) {
+        this.currentIndex -= this.announceSize;
+      } else {
+        return;
       }
     },
     /**
@@ -605,7 +643,6 @@ export const useIndexStore = defineStore("index", {
      * @param payload
      */
     goToNextPage() {
-      console.log("go to next page");
       if (this.searchOption === "yahoo") {
         let lastIndex = 0;
         lastIndex = this.currentPageNum * this.results - 1;
@@ -660,8 +697,6 @@ export const useIndexStore = defineStore("index", {
 
         try {
           if (searchOption === "yahoo") {
-            console.log("ヤフーで検索");
-
             // Yahooのとき
             const { $axios } = useNuxtApp();
             const config = useRuntimeConfig();
@@ -680,9 +715,7 @@ export const useIndexStore = defineStore("index", {
             );
             nowData = response.data.hits[0];
             newUrl = nowData.url;
-            console.log("ヤフーの検索終わり");
           } else if (searchOption === "rakuten") {
-            console.log("楽天で検索");
             // 楽天のとき
             const { $axiosRakuten } = useNuxtApp();
             const config = useRuntimeConfig();
@@ -700,7 +733,6 @@ export const useIndexStore = defineStore("index", {
 
             nowData = response.data.Items[0].Item;
             newUrl = nowData.itemUrl;
-            console.log("楽天で検索終わった");
           }
 
           const registeredUrl = registeredProduct.url;
@@ -710,7 +742,6 @@ export const useIndexStore = defineStore("index", {
             let rakutenImageUrl = "";
             if (searchOption === "rakuten") {
               const rakutenImageUrls = nowData.mediumImageUrls;
-              console.log(rakutenImageUrls);
               rakutenImageUrl = rakutenImageUrls[0].imageUrl;
             }
             // 速報に表示する commit
@@ -733,7 +764,7 @@ export const useIndexStore = defineStore("index", {
                     nowData.reviewAverage
                   );
 
-            this.showNewArriveData(commonProduct);
+            this.setNewArriveData(commonProduct);
           }
         } catch (err: any) {
           window.alert(`Error in getRegisteredProducts: ${err.message}`);
@@ -772,7 +803,6 @@ export const useIndexStore = defineStore("index", {
      */
     async fetchUserStatus() {
       // ログイン状況を確認し、stateにセットする
-      console.log("ログイン状況を確認します");
       const authedUser = auth.currentUser;
       if (authedUser) {
         this.currentUser = true;
@@ -796,7 +826,6 @@ export const useIndexStore = defineStore("index", {
           this.loginStatus = false;
         }
       });
-      console.log("ログイン状況を確認しました" + this.loginUser.mailAddress);
     },
     /**
      * ログアウト
@@ -819,7 +848,6 @@ export const useIndexStore = defineStore("index", {
           window.alert(error.message);
         });
     },
-
-    getters: {},
   },
+  getters: {},
 });

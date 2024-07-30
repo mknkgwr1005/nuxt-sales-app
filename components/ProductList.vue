@@ -70,7 +70,7 @@
               ></v-img>
               <v-card-text>
                 <h6 class="card-subtitle">&yen;{{ product.price }}</h6>
-                <v-btn text @click="sortGenre(product.genreCategory.id)">
+                <v-btn @click="sortGenre(product.genreCategory.id)">
                   #{{ product.genreCategory.name }}
                 </v-btn>
                 <p>{{ product.truncatedDescription }}</p>
