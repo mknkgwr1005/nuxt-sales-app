@@ -3,9 +3,17 @@
     <v-row class="d-flex flex-wrap justify-center">
       <v-col cols="auto">
         <p>キーワード</p>
-        <v-chip>
-          {{ store.inputValue }}
-        </v-chip>
+        <div>
+          <v-chip
+            v-for="keyword in splitKeyword"
+            :key="keyword"
+            class="ma-2"
+            closable
+            @click:close="removeKeyword(keyword)"
+          >
+            {{ keyword }}
+          </v-chip>
+        </div>
         <div>　　</div>
         <v-form>
           <v-select
@@ -73,7 +81,27 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 const store = useIndexStore();
+
+// searchKeywordをスペースで分割し、splitKeywordに設定
+const splitKeyword = ref(store.searchKeyword.split(" "));
+
+// キーワードを削除する関数
+const removeKeyword = (deleteKeyword: string) => {
+  // キーワードのリストを走査し、削除するキーワードの正しいインデックスを見つける
+  const index = splitKeyword.value.findIndex(
+    (keyword) => keyword === deleteKeyword
+  );
+
+  if (index !== -1) {
+    // splitKeywordから削除
+    splitKeyword.value.splice(index, 1);
+
+    // store.searchKeywordを更新
+    store.searchKeyword = splitKeyword.value.join(" ");
+  }
+};
 
 const updateChildCategory = () => {
   if (store.$state.genre !== "") {

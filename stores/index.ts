@@ -18,7 +18,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 
 export const useIndexStore = defineStore("index", {
   state: () => ({
-    inputValue: "",
+    searchKeyword: "",
     searchOption: "",
     totalProductsNum: 0,
     totalPageNum: 1,
@@ -115,7 +115,7 @@ export const useIndexStore = defineStore("index", {
           //パラメータリクエスト
           params: {
             appid: config.public.YAHOO_API_APPID,
-            query: this.inputValue,
+            query: this.searchKeyword,
             image_size: 300,
             genre_category_id: sortGenre,
             results: resultsNum,
@@ -173,6 +173,7 @@ export const useIndexStore = defineStore("index", {
      * @param context
      */
     async getRktProductList() {
+      const keyword = this.searchKeyword.replace(/　/g, " ");
       this.productList = [];
       const stateSort = this.sort;
       let sortOptions = null;
@@ -212,7 +213,7 @@ export const useIndexStore = defineStore("index", {
           {
             params: {
               applicationId: config.public.RAKUTEN_API_APPID,
-              keyword: this.inputValue,
+              keyword: keyword,
               genreId: sortGenre,
               sort: sortOptions,
               hits: this.productsPerPage,
@@ -357,7 +358,7 @@ export const useIndexStore = defineStore("index", {
           ? {
               userId: this.loginUser.id,
               searchOption: this.searchOption,
-              keyword: this.inputValue,
+              keyword: this.searchKeyword,
               name: payload.name,
               brand: payload.brand.name,
               genre: payload.genreCategory.name,
@@ -369,7 +370,7 @@ export const useIndexStore = defineStore("index", {
           : {
               userId: this.loginUser.id,
               searchOption: this.searchOption,
-              keyword: this.inputValue,
+              keyword: this.searchKeyword,
               name: payload.itemName,
               genreId: payload.genreId,
               image: payload.mediumImageUrls[0].imageUrl,
