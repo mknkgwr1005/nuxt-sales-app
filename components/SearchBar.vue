@@ -2,7 +2,8 @@
   <v-container class="d-flex flex-wrap align-content-center">
     <div class="inputTextField">
       <v-text-field
-        v-model="store.$state.inputValue"
+        v-model="store.searchKeyword"
+        @change="replaceSpaces"
         density="compact"
         label="Search"
         prepend-inner-icon="mdi-magnify"
@@ -18,12 +19,7 @@
 
     <v-row>
       <v-col cols="12">
-        <v-btn-toggle
-          v-model="store.$state.searchOption"
-          mandatory
-          class="mt-1"
-          tile
-        >
+        <v-btn-toggle v-model="store.searchOption" mandatory class="mt-1" tile>
           <v-btn :value="'yahoo'" @click="useSearchProducts()">
             Yahooで検索
           </v-btn>
@@ -48,6 +44,9 @@
 <script setup lang="ts">
 const store = useIndexStore();
 
+const replaceSpaces = () => {
+  store.searchKeyword = store.searchKeyword.replace(/　/g, " ");
+};
 // resultsの監視
 watch(
   () => store.searchOption,
