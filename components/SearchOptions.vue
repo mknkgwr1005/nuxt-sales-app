@@ -2,7 +2,7 @@
   <v-container>
     <v-row class="d-flex flex-wrap justify-center">
       <v-col cols="auto">
-        <p>キーワード</p>
+        <h4>キーワード</h4>
         <div>
           <v-chip
             v-for="keyword in splitKeyword"
@@ -74,6 +74,9 @@
             outlined
           />
         </v-form>
+        <h4>商品価格</h4>
+        <v-text-field label="最低価格" v-model="store.minPrice"></v-text-field>
+        <v-text-field label="最高価格" v-model="store.maxPrice"></v-text-field>
         <v-btn color="primary" @click="sortGenre()">絞り込み</v-btn>
       </v-col>
     </v-row>
@@ -81,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 const store = useIndexStore();
 
 // searchKeywordをスペースで分割し、splitKeywordに設定
@@ -104,10 +107,10 @@ const removeKeyword = (deleteKeyword: string) => {
 };
 
 const updateChildCategory = () => {
-  if (store.$state.genre !== "") {
-    if (store.$state.searchOption === "yahoo") {
+  if (store.genre !== "") {
+    if (store.searchOption === "yahoo") {
       store.findCategoryDetail();
-    } else if (store.$state.searchOption === "rakuten") {
+    } else if (store.searchOption === "rakuten") {
       store.findRktChildCategory();
     }
   }

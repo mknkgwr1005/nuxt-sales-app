@@ -15,61 +15,66 @@ import type { newArriveItem } from "@/types/registerProducts/newArriveItem";
 import { apiProducts } from "@/types/yahoo/apiProducts";
 import { userInfo } from "@/types/user/userInfo";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import type { rktPriceItem } from "@/types/rakuten/rktPriceItem";
 
 export const useIndexStore = defineStore("index", {
-  state: () => ({
-    searchKeyword: "",
-    searchOption: "",
-    totalProductsNum: 0,
-    totalPageNum: 1,
-    productsPerPage: 0,
-    currentPageNum: 1,
-    results: 20,
-    start: 1,
-    filterOn: false,
-    productList: new Array<apiProducts>(),
-    rktProductList: new Array<rktProducts>(),
-    displayData: [
-      { text: "表示数", value: 0 },
-      { text: "5件", value: 5 },
-      { text: "10件", value: 10 },
-      { text: "15件", value: 15 },
-      { text: "20件", value: 20 },
-    ],
-    changeOrderData: [
-      { text: "並び替え", value: "title" },
-      { text: "おすすめ", value: "reccomend" },
-      { text: "レビューが多い順", value: "popular" },
-      { text: "価格が安い順", value: "cheapest" },
-      { text: "価格が高い順", value: "expensive" },
-    ],
-    sort: "",
-    yahooCategory: new Array<Category>(),
-    yCategory: new Array<Category>(),
-    yImagePath: "",
-    rktCategory: new Array<Category>(),
-    rktChildCategory: [],
-    //親カテゴリ（表示用）
-    genre: "",
-    //子カテゴリ（表示用）
-    childGenre: new Array<Category>(),
-    lastHitUrl: "",
-    registerData: new Array<newArriveItem>(),
-    announceData: new Array<commonProducts>(),
-    newAnnounceData: new Array<commonProducts>(),
-    announceSize: 3,
-    stopSearchCount: 0,
-    loginStatus: false,
-    loginUser: {
-      id: "",
-      name: "",
-      mailAddress: "",
-    },
-    currentUser: false,
-    currentIndex: 0,
-    leftCarousel: true, //戻る
-    rightCarousel: false, //次へ
-  }),
+  state: () =>
+    ref({
+      searchKeyword: "",
+      searchOption: "",
+      totalProductsNum: 0,
+      totalPageNum: 1,
+      productsPerPage: 0,
+      currentPageNum: 1,
+      results: 20,
+      start: 1,
+      filterOn: false,
+      productList: new Array<apiProducts>(),
+      rktProductList: new Array<rktProducts>(),
+      displayData: [
+        { text: "表示数", value: 0 },
+        { text: "5件", value: 5 },
+        { text: "10件", value: 10 },
+        { text: "15件", value: 15 },
+        { text: "20件", value: 20 },
+      ],
+      changeOrderData: [
+        { text: "並び替え", value: "title" },
+        { text: "おすすめ", value: "reccomend" },
+        { text: "レビューが多い順", value: "popular" },
+        { text: "価格が安い順", value: "cheapest" },
+        { text: "価格が高い順", value: "expensive" },
+      ],
+      sort: "",
+      yahooCategory: new Array<Category>(),
+      yCategory: new Array<Category>(),
+      yImagePath: "",
+      rktCategory: new Array<Category>(),
+      rktChildCategory: [],
+      //親カテゴリ（表示用）
+      genre: "",
+      //子カテゴリ（表示用）
+      childGenre: new Array<Category>(),
+      lastHitUrl: "",
+      registerData: new Array<newArriveItem>(),
+      announceData: new Array<commonProducts>(),
+      newAnnounceData: new Array<commonProducts>(),
+      announceSize: 3,
+      stopSearchCount: 0,
+      loginStatus: false,
+      loginUser: {
+        id: "",
+        name: "",
+        mailAddress: "",
+      },
+      currentUser: false,
+      currentIndex: 0,
+      leftCarousel: true, //戻る
+      rightCarousel: false, //次へ
+      priceLabel: [],
+      maxPrice: null,
+      minPrice: null,
+    }),
   actions: {
     /**
      *  yahooの商品を取得する
@@ -118,6 +123,8 @@ export const useIndexStore = defineStore("index", {
             query: this.searchKeyword,
             image_size: 300,
             genre_category_id: sortGenre,
+            price_from: this.minPrice,
+            price_to: this.maxPrice,
             results: resultsNum,
             start: this.start,
             sort: sortOptions,
@@ -218,13 +225,17 @@ export const useIndexStore = defineStore("index", {
               sort: sortOptions,
               hits: this.productsPerPage,
               page: this.start,
+              minPrice: this.minPrice,
+              maxPrice: this.maxPrice,
             },
           }
         );
 
         const payload = response.data;
-        this.showRktProductList(payload.Items);
-        this.handlePageNum(payload);
+        if (payload) {
+          this.showRktProductList(payload.Items);
+          this.handlePageNum(payload);
+        }
       } catch (err: any) {
         console.log(err);
       }
@@ -269,13 +280,15 @@ export const useIndexStore = defineStore("index", {
       this.showRakutenChild(payload);
     },
     /**
-     * 前のカテゴリを削除する
+     * dataの初期化
      */
-    resetGenreCategory() {
+    resetStoreData() {
       this.genre = "";
       this.childGenre = [];
       this.results = 20;
       this.sort = "";
+      this.maxPrice = null;
+      this.minPrice = null;
       this.currentPageNum = 1;
     },
     /**
