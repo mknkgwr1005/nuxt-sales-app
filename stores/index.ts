@@ -74,6 +74,7 @@ export const useIndexStore = defineStore("index", {
       priceLabel: [],
       maxPrice: null,
       minPrice: null,
+      reviewStar: 0,
     }),
   actions: {
     /**
@@ -232,6 +233,8 @@ export const useIndexStore = defineStore("index", {
         );
 
         const payload = response.data;
+        console.log(payload);
+
         if (payload) {
           this.showRktProductList(payload.Items);
           this.handlePageNum(payload);
@@ -534,6 +537,12 @@ export const useIndexStore = defineStore("index", {
         ...item,
         truncatedDescription: this.truncateText(item.description, 100), // 文字数を制限する
       }));
+      if (this.reviewStar !== 0) {
+        this.productList = this.productList.filter((item: any) => {
+          console.log(item);
+          return item.review.rate >= this.reviewStar;
+        });
+      }
     },
     /**
      * yahooの子カテゴリを表示する
@@ -583,6 +592,11 @@ export const useIndexStore = defineStore("index", {
         ...item.Item,
         truncatedDescription: this.truncateText(item.Item.itemCaption, 100), // 文字数を制限する
       }));
+      if (this.reviewStar !== 0) {
+        this.rktProductList = this.rktProductList.filter((item: any) => {
+          return item.reviewAverage >= this.reviewStar;
+        });
+      }
     },
     /**
      * 楽天のカテゴリを表示する

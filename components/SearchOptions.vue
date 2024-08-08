@@ -77,7 +77,50 @@
         <h4>商品価格</h4>
         <v-text-field label="最低価格" v-model="store.minPrice"></v-text-field>
         <v-text-field label="最高価格" v-model="store.maxPrice"></v-text-field>
-        <v-btn color="primary" @click="sortGenre()">絞り込み</v-btn>
+        <h4>レビュー平均</h4>
+        <div>
+          <v-btn class="mb-2" @click="updateReviewStar(1)">
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            1.0~
+          </v-btn>
+        </div>
+        <div>
+          <v-btn class="mb-2" @click="updateReviewStar(2)">
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            2.0~
+          </v-btn>
+        </div>
+        <div>
+          <v-btn class="mb-2" @click="updateReviewStar(3)">
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            3.0~
+          </v-btn>
+        </div>
+        <div>
+          <v-btn class="mb-2" @click="updateReviewStar(4)">
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            4.0~
+          </v-btn>
+        </div>
+        <div>
+          <v-btn class="mb-2" @click="updateReviewStar(5)">
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+            5.0~
+          </v-btn>
+        </div>
+        <v-btn color="primary" class="mt-4" @click="sortGenre()"
+          >絞り込み</v-btn
+        >
       </v-col>
     </v-row>
   </v-container>
@@ -116,6 +159,11 @@ const updateChildCategory = () => {
   }
 };
 
+const updateReviewStar = (value: number) => {
+  store.reviewStar = value;
+  sortGenre();
+};
+
 const sortGenre = () => {
   store.setFilterOn();
   useSearchProducts();
@@ -136,5 +184,17 @@ watch(
 <style scoped>
 .option {
   width: 200px;
+}
+
+.yellow-star {
+  color: #fad094;
+}
+
+.mb-2 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 32px;
 }
 </style>
