@@ -74,6 +74,23 @@
                   #{{ product.genreCategory.name }}
                 </v-btn>
                 <p>{{ product.truncatedDescription }}</p>
+                <div>
+                  <h5>平均レビュー：{{ product.review.rate }}</h5>
+                  <v-icon
+                    v-for="(star, index) of Math.floor(product.review.rate)"
+                    :key="index"
+                    class="yellow-star"
+                    icon="mdi-star"
+                  ></v-icon>
+                  <v-icon
+                    v-if="
+                      Math.floor(product.review.rate) % product.review.rate !==
+                        0 || product.review.rate > 0
+                    "
+                    class="yellow-star"
+                    icon="mdi-star-half-full"
+                  ></v-icon>
+                </div>
                 <v-btn color="primary" @click="goToUrl(product.url)"
                   >購入する</v-btn
                 >
@@ -109,6 +126,26 @@
               <v-card-text>
                 <h6 class="card-subtitle">&yen;{{ rktProduct.itemPrice }}</h6>
                 <p>{{ rktProduct.truncatedDescription }}</p>
+                <div>
+                  <h5>平均レビュー：{{ rktProduct.reviewAverage }}</h5>
+                  <v-icon
+                    v-for="(star, index) of Math.floor(
+                      rktProduct.reviewAverage
+                    )"
+                    :key="index"
+                    class="yellow-star"
+                    icon="mdi-star"
+                  ></v-icon>
+                  <v-icon
+                    v-if="
+                      Math.floor(rktProduct.reviewAverage) %
+                        rktProduct.reviewAverage !==
+                        0 || rktProduct.reviewAverage !== 0
+                    "
+                    class="yellow-star"
+                    icon="mdi-star-half-full"
+                  ></v-icon>
+                </div>
                 <v-btn color="primary" @click="goToUrl(rktProduct.itemUrl)"
                   >購入する</v-btn
                 >
@@ -178,5 +215,17 @@ const changeCardWidth = (description: string) => {
 .cards {
   width: 300px;
   justify-content: center;
+}
+
+.yellow-star {
+  color: #fad094;
+}
+
+.mb-2 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 32px;
 }
 </style>

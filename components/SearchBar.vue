@@ -53,7 +53,7 @@ watch(
   (newVal: string) => {
     if (newVal) {
       console.log("changed!" + newVal);
-      store.resetGenreCategory();
+      store.resetStoreData();
     }
   }
 );
