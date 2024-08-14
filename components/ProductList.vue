@@ -1,19 +1,19 @@
 <template>
   <v-container fluid>
     <!-- Header -->
-    <v-row class="d-flex align-center justify-center">
+    <v-row align="center" justify="center" class="text-center">
       <v-col cols="12">
         <img src="../assets/img/main.png" alt="" />
       </v-col>
     </v-row>
     <!-- 入荷情報 -->
-    <v-row margin="auto">
+    <v-row align="center" justify="center" class="text-center">
       <v-col cols="12">
         <QuickAnnouncement />
       </v-col>
     </v-row>
     <!-- 検索バー -->
-    <v-row margin="auto">
+    <v-row align="center" justify="center" class="text-center">
       <v-col cols="12">
         <SearchBar />
       </v-col>
@@ -34,7 +34,7 @@
       </v-col>
 
       <!-- Product List -->
-      <v-col cols="9">
+      <v-col cols="9" justify="center" align="center">
         <div
           width="100%"
           v-if="
@@ -158,9 +158,10 @@
         </v-row>
 
         <!-- Pagination -->
-        <v-row v-if="store.totalPageNum > 0">
-          <v-col cols="12" class="overflow-auto">
+        <v-row justify="center" align="center">
+          <v-col cols="auto" class="overflow-auto">
             <v-pagination
+              v-if="store.totalPageNum > 0"
               v-model="store.currentPageNum"
               :length="store.totalPageNum"
               :total-visible="10"
