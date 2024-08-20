@@ -54,8 +54,6 @@ const resetPage = () => {
   emit("update:tab", "home");
 };
 
-console.log(props.tab);
-
 const handleLogin = async () => {
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value).then(

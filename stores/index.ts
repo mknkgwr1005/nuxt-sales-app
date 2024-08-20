@@ -318,6 +318,11 @@ export const useIndexStore = defineStore("index", {
      *　入荷情報で、表示用のデータを変更する
      */
     handleAnnouncement() {
+      if (window.innerWidth < 768) {
+        this.announceSize = 1;
+      } else {
+        this.announceSize = 3;
+      }
       const start = this.currentIndex;
       const end = start + this.announceSize;
 
@@ -328,7 +333,10 @@ export const useIndexStore = defineStore("index", {
       } else {
         this.leftCarousel = false;
       }
-      if (this.currentIndex + this.announceSize > this.announceData.length) {
+      if (
+        this.currentIndex + this.announceSize >
+        this.announceData.length - 1
+      ) {
         this.rightCarousel = true;
       } else {
         this.rightCarousel = false;

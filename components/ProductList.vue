@@ -3,7 +3,7 @@
     <!-- Header -->
     <v-row align="center" justify="center" class="text-center">
       <v-col cols="12">
-        <img src="../assets/img/main.png" alt="" />
+        <img v-if="!isMobile" src="../assets/img/main.png" alt="" />
       </v-col>
     </v-row>
     <!-- 入荷情報 -->
@@ -13,7 +13,7 @@
       </v-col>
     </v-row>
     <!-- 検索バー -->
-    <v-row align="center" justify="center" class="text-center">
+    <v-row v-if="!isMobile" align="center" justify="center" class="text-center">
       <v-col cols="12">
         <SearchBar />
       </v-col>
@@ -25,20 +25,35 @@
       <v-col
         cols="3"
         v-if="
-          store.productList.length !== 0 || store.rktProductList.length !== 0
+          !isMobile &&
+          (store.productList.length !== 0 || store.rktProductList.length !== 0)
         "
       >
-        <v-card class="mb-3" height="auto">
+        <v-card class="mb-3" height="auto" :width="changeOptionWidth">
           <SearchOptions />
         </v-card>
       </v-col>
+      <v-row
+        rows="3"
+        v-if="
+          !isMobile &&
+          (store.productList.length !== 0 || store.rktProductList.length !== 0)
+        "
+      >
+        {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
+        <v-card class="mb-3" height="auto" :width="changeOptionWidth">
+          <SearchOptions />
+        </v-card>
+      </v-row>
 
       <!-- Product List -->
-      <v-col cols="9" justify="center" align="center">
+      <v-col cols="9" justify="center" align="center" width="100%">
         <div
           width="100%"
           v-if="
-            store.productList.length !== 0 || store.rktProductList.length !== 0
+            !isMobile &&
+            (store.productList.length !== 0 ||
+              store.rktProductList.length !== 0)
           "
         >
           {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
@@ -180,13 +195,14 @@
 import "../assets/products/noimage.jpg";
 
 const store = useIndexStore();
+let isMobile = ref(false);
 
 const register = (product: any) => {
   store.setRegisterData(product);
 };
 
 const goToUrl = (url: string) => {
-  window.location.href = url;
+  window.open(url);
 };
 
 const handlePage = () => {
@@ -210,6 +226,16 @@ const changeCardWidth = (description: string) => {
     return "400px";
   }
 };
+
+// Function to check screen size
+const checkScreenSize = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+onMounted(() => {
+  checkScreenSize();
+  window.addEventListener("resize", checkScreenSize);
+});
 </script>
 
 <style scoped>

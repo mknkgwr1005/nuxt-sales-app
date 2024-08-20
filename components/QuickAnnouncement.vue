@@ -4,7 +4,11 @@
     fluid
   >
     <!-- button -->
-    <v-row v-if="store.announceData.length !== 0" justify="center">
+    <v-row
+      v-if="store.announceData.length !== 0"
+      class="product-cards"
+      justify="center"
+    >
       <v-btn
         icon
         @click="prev"
@@ -15,13 +19,7 @@
       </v-btn>
 
       <!-- productcard -->
-      <v-row
-        dense
-        class="product-cards"
-        wrap="nowrap"
-        no-gutters
-        justify="center"
-      >
+      <v-row dense wrap="nowrap" no-gutters justify="center">
         <v-col
           v-for="product of store.newAnnounceData"
           :key="product?.url"
