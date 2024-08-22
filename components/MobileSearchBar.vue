@@ -20,15 +20,16 @@
         <v-card-title class="card-title"> <h4>詳細検索</h4> </v-card-title>
         <v-card-text>
           <!-- Include your search options content here -->
-          <div>
-            <h4>検索サイト</h4>
-            <v-radio-group>
+          <v-col cols="auto">
+            <h4 class="colTitle">検索サイト</h4>
+            <v-radio-group class="d-flex flex-wrap justify-center">
               <v-radio
                 label="yahoo"
                 value="yahoo"
                 v-model="store.searchOption"
                 color="info"
-              ></v-radio>
+              >
+              </v-radio>
               <v-radio
                 label="rakuten"
                 value="rakuten"
@@ -36,8 +37,8 @@
                 color="info"
               ></v-radio>
             </v-radio-group>
-          </div>
-          <SearchOptions />
+            <SearchOptions />
+          </v-col>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -72,5 +73,15 @@ const searchProducts = () => {
 .custom-active-class {
   background-color: #ff6c7e !important; /* Set the active background color */
   color: white !important; /* Set the active text color */
+}
+
+.colTitle {
+  margin-left: 100px;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  justify-content: center;
+  margin-left: 100px;
 }
 </style>
