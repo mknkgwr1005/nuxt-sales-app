@@ -23,7 +23,7 @@ export const useIndexStore = defineStore("index", {
       searchKeyword: "",
       searchOption: "",
       totalProductsNum: 0,
-      totalPageNum: 1,
+      totalPageNum: 0,
       productsPerPage: 0,
       currentPageNum: 1,
       results: 20,
@@ -111,6 +111,8 @@ export const useIndexStore = defineStore("index", {
       }
       if (this.currentPageNum !== 1) {
         this.goToNextPage();
+      } else if (this.currentPageNum === 1) {
+        this.start = this.productsPerPage;
       }
       const { $axios } = useNuxtApp();
       const config = useRuntimeConfig();
@@ -233,7 +235,6 @@ export const useIndexStore = defineStore("index", {
         );
 
         const payload = response.data;
-        console.log(payload);
 
         if (payload) {
           this.showRktProductList(payload.Items);
@@ -286,6 +287,7 @@ export const useIndexStore = defineStore("index", {
      * dataの初期化
      */
     resetStoreData() {
+      this.totalPageNum = 0;
       this.genre = "";
       this.childGenre = [];
       this.results = 20;
@@ -316,6 +318,11 @@ export const useIndexStore = defineStore("index", {
      *　入荷情報で、表示用のデータを変更する
      */
     handleAnnouncement() {
+      if (window.innerWidth < 768) {
+        this.announceSize = 1;
+      } else {
+        this.announceSize = 3;
+      }
       const start = this.currentIndex;
       const end = start + this.announceSize;
 
@@ -326,7 +333,10 @@ export const useIndexStore = defineStore("index", {
       } else {
         this.leftCarousel = false;
       }
-      if (this.currentIndex + this.announceSize > this.announceData.length) {
+      if (
+        this.currentIndex + this.announceSize >
+        this.announceData.length - 1
+      ) {
         this.rightCarousel = true;
       } else {
         this.rightCarousel = false;
@@ -533,16 +543,15 @@ export const useIndexStore = defineStore("index", {
      */
     showProductList(payload: any) {
       this.productList = new Array<apiProducts>();
+      if (this.reviewStar !== 0) {
+        payload = payload.filter((item: any) => {
+          return item.review.rate >= this.reviewStar;
+        });
+      }
       this.productList = payload.map((item: any) => ({
         ...item,
         truncatedDescription: this.truncateText(item.description, 100), // 文字数を制限する
       }));
-      if (this.reviewStar !== 0) {
-        this.productList = this.productList.filter((item: any) => {
-          console.log(item);
-          return item.review.rate >= this.reviewStar;
-        });
-      }
     },
     /**
      * yahooの子カテゴリを表示する

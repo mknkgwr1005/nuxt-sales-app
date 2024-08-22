@@ -2,19 +2,25 @@
   <v-container>
     <v-row class="d-flex flex-wrap justify-center">
       <v-col cols="auto">
-        <h4>キーワード</h4>
         <div>
-          <v-chip
-            v-for="keyword in splitKeyword"
-            :key="keyword"
-            class="ma-2"
-            closable
-            @click:close="removeKeyword(keyword)"
-          >
-            {{ keyword }}
-          </v-chip>
+          <h4>キーワード</h4>
+          <div v-if="wordExists">
+            <v-chip
+              v-for="keyword in splitKeyword"
+              :key="keyword"
+              class="ma-2"
+              closable
+              @click:close="removeKeyword(keyword)"
+            >
+              {{ keyword }}
+            </v-chip>
+          </div>
+          <div v-if="!wordExists">
+            <p>キーワードを入力してください</p>
+          </div>
         </div>
         <div>　　</div>
+        <h4>ソート</h4>
         <v-form>
           <v-select
             class="display-data option"
@@ -38,7 +44,8 @@
             outlined
           ></v-select>
         </v-form>
-        <v-form>
+        <v-form v-if="store.genre.length !== 0">
+          <h4>ジャンル</h4>
           <v-select
             class="genre option"
             v-if="store.searchOption === 'yahoo'"
@@ -78,47 +85,53 @@
         <v-text-field label="最低価格" v-model="store.minPrice"></v-text-field>
         <v-text-field label="最高価格" v-model="store.maxPrice"></v-text-field>
         <h4>レビュー平均</h4>
-        <div>
-          <v-btn class="mb-2" @click="updateReviewStar(1)">
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            1.0~
-          </v-btn>
-        </div>
-        <div>
-          <v-btn class="mb-2" @click="updateReviewStar(2)">
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            2.0~
-          </v-btn>
-        </div>
-        <div>
-          <v-btn class="mb-2" @click="updateReviewStar(3)">
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            3.0~
-          </v-btn>
-        </div>
-        <div>
-          <v-btn class="mb-2" @click="updateReviewStar(4)">
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            4.0~
-          </v-btn>
-        </div>
-        <div>
-          <v-btn class="mb-2" @click="updateReviewStar(5)">
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            <v-icon class="yellow-star" icon="mdi-star"></v-icon>
-            5.0~
-          </v-btn>
-        </div>
-        <v-btn color="primary" class="mt-4" @click="sortGenre()"
+        <v-col v-if="wordExists">
+          <div>
+            <v-btn class="mb-2" @click="updateReviewStar(1)">
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              1.0~
+            </v-btn>
+          </div>
+          <div>
+            <v-btn class="mb-2" @click="updateReviewStar(2)">
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              2.0~
+            </v-btn>
+          </div>
+          <div>
+            <v-btn class="mb-2" @click="updateReviewStar(3)">
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              3.0~
+            </v-btn>
+          </div>
+          <div>
+            <v-btn class="mb-2" @click="updateReviewStar(4)">
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              4.0~
+            </v-btn>
+          </div>
+          <div>
+            <v-btn class="mb-2" @click="updateReviewStar(5)">
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              <v-icon class="yellow-star" icon="mdi-star"></v-icon>
+              5.0~
+            </v-btn>
+          </div>
+        </v-col>
+        <v-btn
+          color="primary"
+          class="mt-4"
+          :disabled="disable()"
+          @click="sortGenre()"
           >絞り込み</v-btn
         >
       </v-col>
@@ -132,6 +145,14 @@ const store = useIndexStore();
 
 // searchKeywordをスペースで分割し、splitKeywordに設定
 const splitKeyword = ref(store.searchKeyword.split(" "));
+const wordExists = splitKeyword.value[0];
+const disable = () => {
+  if (wordExists) {
+    return false;
+  } else {
+    return true;
+  }
+};
 
 // キーワードを削除する関数
 const removeKeyword = (deleteKeyword: string) => {
@@ -166,6 +187,8 @@ const updateReviewStar = (value: number) => {
 
 const sortGenre = () => {
   store.setFilterOn();
+  console.log(store.searchKeyword);
+
   useSearchProducts();
 };
 
