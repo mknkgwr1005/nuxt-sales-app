@@ -108,8 +108,6 @@ onBeforeUnmount(() => {
 
 // Computed class for product-list margin
 const productListClass = computed(() => {
-  console.log(isMobile);
-
   if (isMobile.value === false) {
     return "product-list-auto-margin";
   } else {

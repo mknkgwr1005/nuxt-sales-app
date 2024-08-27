@@ -29,22 +29,10 @@
           (store.productList.length !== 0 || store.rktProductList.length !== 0)
         "
       >
-        <v-card class="mb-3" height="auto" :width="changeOptionWidth">
+        <v-card class="mb-3" width="auto" height="auto">
           <SearchOptions />
         </v-card>
       </v-col>
-      <v-row
-        rows="3"
-        v-if="
-          !isMobile &&
-          (store.productList.length !== 0 || store.rktProductList.length !== 0)
-        "
-      >
-        {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
-        <v-card class="mb-3" height="auto" :width="changeOptionWidth">
-          <SearchOptions />
-        </v-card>
-      </v-row>
 
       <!-- Product List -->
       <v-col cols="9" justify="center" align="center" width="100%">
@@ -56,7 +44,11 @@
               store.rktProductList.length !== 0)
           "
         >
-          {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
+          <p class="products-number">
+            {{ store.productsPerPage }}件表示
+            {{ store.totalProductsNum }}件ヒット
+          </p>
+          <br />
         </div>
         <v-row
           v-if="store.productList.length !== 0"
@@ -181,7 +173,7 @@
               :length="store.totalPageNum"
               :total-visible="10"
               first-icon="mdi-chevron-double-left"
-              last-icon="mdi-chevron-double-right"
+              last-icon="mdi-chevron-double-seright"
               @update:modelValue="handlePage"
             ></v-pagination>
           </v-col>
@@ -254,5 +246,9 @@ onMounted(() => {
 
 .mt-4 {
   margin-top: 32px;
+}
+
+.products-number {
+  display: flex;
 }
 </style>

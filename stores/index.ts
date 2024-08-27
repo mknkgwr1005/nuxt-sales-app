@@ -112,7 +112,7 @@ export const useIndexStore = defineStore("index", {
       if (this.currentPageNum !== 1) {
         this.goToNextPage();
       } else if (this.currentPageNum === 1) {
-        this.start = this.productsPerPage;
+        this.start = 1;
       }
       const { $axios } = useNuxtApp();
       const config = useRuntimeConfig();
@@ -134,6 +134,7 @@ export const useIndexStore = defineStore("index", {
           },
         });
         const payload = response.data;
+
         // 商品を表示させる
         this.showProductList(payload.hits);
         // 商品を取得したら、ページ数とヒット数を表示する
@@ -682,7 +683,9 @@ export const useIndexStore = defineStore("index", {
     goToNextPage() {
       if (this.searchOption === "yahoo") {
         let lastIndex = 0;
-        lastIndex = this.currentPageNum * this.results - 1;
+        lastIndex = (this.currentPageNum - 1) * this.results + 1;
+        console.log(lastIndex);
+
         this.start = lastIndex;
       } else if (this.searchOption === "rakuten") {
         this.start = this.currentPageNum;
