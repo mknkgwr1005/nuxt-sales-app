@@ -35,7 +35,7 @@ export const useSearchRegisteredProducts = () => {
     if (intervalId === null) {
       intervalId = window.setInterval(() => {
         getProduct();
-      }, 60000);
+      }, 300000);
     }
   };
 

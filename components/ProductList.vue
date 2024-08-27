@@ -43,11 +43,13 @@
             (store.productList.length !== 0 ||
               store.rktProductList.length !== 0)
           "
-        ></div>
-        <p class="products-number">
-          {{ store.productsPerPage }}件表示 {{ store.totalProductsNum }}件ヒット
-        </p>
-        <br />
+        >
+          <p class="products-number">
+            {{ store.productsPerPage }}件表示
+            {{ store.totalProductsNum }}件ヒット
+          </p>
+          <br />
+        </div>
         <v-row
           v-if="store.productList.length !== 0"
           justify="space-around"
