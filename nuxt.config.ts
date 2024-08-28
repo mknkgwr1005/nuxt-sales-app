@@ -2,7 +2,7 @@ import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 export default defineNuxtConfig({
   build: {
-    transpile: ["vuetify"],
+    transpile: ["vuetify", "firebase"],
   },
   modules: [
     "@pinia/nuxt",
@@ -13,6 +13,7 @@ export default defineNuxtConfig({
       });
     },
   ],
+  plugins: [{ src: "~/firebase/config.ts", mode: "client" }],
   vite: {
     vue: {
       template: {
