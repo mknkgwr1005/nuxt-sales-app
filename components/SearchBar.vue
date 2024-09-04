@@ -1,31 +1,37 @@
 <template>
-  <div class="d-flex flex-wrap align-content-center justify-content-center">
-    <v-text-field
-      v-model="store.$state.inputValue"
-      density="compact"
-      label="Search"
-      prepend-inner-icon="mdi-magnify"
-      variant="solo-filled"
-      flat
-      hide-details
-      single-line
-      app
-      color="light"
-      dense
-    >
-    </v-text-field>
-    <v-row>
+  <v-container class="container">
+    <v-row align="center" justify="center" class="text-center">
+      <div class="inputTextField">
+        <v-text-field
+          v-model="store.searchKeyword"
+          @change="replaceSpaces"
+          density="compact"
+          label="Search"
+          prepend-inner-icon="mdi-magnify"
+          variant="solo-filled"
+          flat
+          hide-details
+          single-line
+          app
+          color="light"
+          dense
+        />
+      </div>
+    </v-row>
+
+    <v-row align="center" justify="center" class="text-center">
       <v-col cols="12">
-        <v-btn-toggle
-          v-model="store.$state.searchOption"
-          mandatory
-          class="mt-1"
-          tile
-        >
-          <v-btn depressed :value="'yahoo'" @click="searchProducts">
+        <v-btn-toggle v-model="store.searchOption" mandatory class="mt-1" tile>
+          <v-btn :value="'yahoo'" @click="useSearchProducts()">
+            <v-icon> mdi-yahoo </v-icon>
             Yahooで検索
           </v-btn>
-          <v-btn depressed :value="'rakuten'" @click="searchProducts">
+          <v-btn :value="'rakuten'" @click="useSearchProducts()">
+            <img
+              src="/public/rakuten_logo_icon.png"
+              alt=""
+              class="rakuten-icon"
+            />
             楽天で検索
           </v-btn>
         </v-btn-toggle>
@@ -35,44 +41,39 @@
     <v-row
       v-if="
         store.$state.productList.length !== 0 ||
-        store.$state.rktProductList.length !== 0
+        store.$state.rktProductList.length !== 0 ||
+        store.filterOn
       "
     >
-      <v-col cols="12" class="text-center">
-        <v-btn class="filter-button" @click="setFilterOn">絞り込み</v-btn>
-      </v-col>
     </v-row>
-    <search-options v-if="store.$state.filterOn === true" />
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
-import SearchOptions from "#components";
-
 const store = useIndexStore();
-// 商品一覧を取得する
-const searchProducts = async () => {
-  console.log("search");
 
-  const searchOption = store.$state.searchOption;
-  console.log(searchOption);
-
-  if (searchOption === "yahoo") {
-    store.getProductList();
-    store.findCategoryDetail();
-  } else if (searchOption === "rakuten") {
-    store.getRktProductList();
-    store.findRktChildCategory();
-  } else {
-    return;
+const replaceSpaces = () => {
+  store.searchKeyword = store.searchKeyword.replace(/　/g, " ");
+};
+// resultsの監視
+watch(
+  () => store.searchOption,
+  (newVal: string) => {
+    if (newVal) {
+      console.log("changed!" + newVal);
+      store.resetStoreData();
+    }
   }
-};
-const setFilterOn = () => {
-  store.setFilterOn;
-};
+);
 </script>
 
 <style scoped>
+.rakuten-icon {
+  width: 20px;
+}
+.inputTextField {
+  width: 50%;
+}
 .filter-button {
   margin: 10px;
   background-color: lightblue;

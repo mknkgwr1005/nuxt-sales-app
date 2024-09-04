@@ -1,54 +1,81 @@
-import axios from "axios";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { defineStore } from "pinia";
-import { db } from "~/firebase";
-import { commonProducts } from "~/types/commonProducts";
-import { Category } from "~/types/rakuten/Category";
-import { rktProducts } from "~/types/rakuten/rktProducts";
-import type { newArriveItem } from "~/types/registerProducts/newArriveItem";
-import { apiProducts } from "~/types/yahoo/apiProducts";
-import { CategoryDetail } from "~/types/yahoo/category/categoryDetail";
+import { auth, db, FirebaseTimestamp } from "@/firebase";
+import { commonProducts } from "@/types/commonProducts";
+import { Category } from "@/types/rakuten/Category";
+import { rktProducts } from "@/types/rakuten/rktProducts";
+import type { newArriveItem } from "@/types/registerProducts/newArriveItem";
+import { apiProducts } from "@/types/yahoo/apiProducts";
+import { userInfo } from "@/types/user/userInfo";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import type { rktPriceItem } from "@/types/rakuten/rktPriceItem";
 
 export const useIndexStore = defineStore("index", {
-  state: () => ({
-    inputValue: "",
-    searchOption: "",
-    options: new Array<string>(),
-    totalProductsNum: 0,
-    totalPageNum: 1,
-    productsPerPage: 0,
-    currentPageNum: 1,
-    results: 20,
-    start: 1,
-    filterOn: false,
-    productList: new Array<apiProducts>(),
-    rktProductList: new Array<rktProducts>(),
-    displayData: [
-      { text: "表示数", value: 0 },
-      { text: "5件", value: 5 },
-      { text: "10件", value: 10 },
-      { text: "15件", value: 15 },
-      { text: "20件", value: 20 },
-    ],
-    changeOrderData: [
-      { text: "並び替え", value: "title" },
-      { text: "おすすめ", value: "reccomend" },
-      { text: "レビューが多い順", value: "popular" },
-      { text: "価格が安い順", value: "cheapest" },
-      { text: "価格が高い順", value: "expensive" },
-    ],
-    sort: "",
-    yahooCategory: new Array<Category>(),
-    yCategory: new Array<CategoryDetail>(),
-    rktCategory: new Array<Category>(),
-    rktChildCategory: [],
-    genre: "",
-    lastHitUrl: "",
-    registerData: new Array<newArriveItem>(),
-    announceData: new Array<commonProducts>(),
-    announceSize: 5,
-    stopSearchCount: 3,
-  }),
+  state: () =>
+    ref({
+      searchKeyword: "",
+      searchOption: "",
+      totalProductsNum: 0,
+      totalPageNum: 0,
+      productsPerPage: 0,
+      currentPageNum: 1,
+      results: 20,
+      start: 1,
+      filterOn: false,
+      productList: new Array<apiProducts>(),
+      rktProductList: new Array<rktProducts>(),
+      displayData: [
+        { text: "表示数", value: 0 },
+        { text: "5件", value: 5 },
+        { text: "10件", value: 10 },
+        { text: "15件", value: 15 },
+        { text: "20件", value: 20 },
+      ],
+      changeOrderData: [
+        { text: "並び替え", value: "title" },
+        { text: "おすすめ", value: "reccomend" },
+        { text: "レビューが多い順", value: "popular" },
+        { text: "価格が安い順", value: "cheapest" },
+        { text: "価格が高い順", value: "expensive" },
+      ],
+      sort: "",
+      yahooCategory: new Array<Category>(),
+      yCategory: new Array<Category>(),
+      yImagePath: "",
+      rktCategory: new Array<Category>(),
+      rktChildCategory: [],
+      //親カテゴリ（表示用）
+      genre: "",
+      //子カテゴリ（表示用）
+      childGenre: new Array<Category>(),
+      lastHitUrl: "",
+      registerData: new Array<newArriveItem>(),
+      announceData: new Array<commonProducts>(),
+      newAnnounceData: new Array<commonProducts>(),
+      announceSize: 3,
+      stopSearchCount: 0,
+      loginStatus: false,
+      loginUser: {
+        id: "",
+        name: "",
+        mailAddress: "",
+      },
+      currentUser: false,
+      currentIndex: 0,
+      leftCarousel: true, //戻る
+      rightCarousel: false, //次へ
+      priceLabel: [],
+      maxPrice: null,
+      minPrice: null,
+      reviewStar: 0,
+    }),
   actions: {
     /**
      *  yahooの商品を取得する
@@ -56,51 +83,58 @@ export const useIndexStore = defineStore("index", {
      */
     async getProductList() {
       this.rktProductList = [];
-      this.options = [];
       const stateSort = this.sort;
-      let sortOptions = "";
+      let sortOptions = null;
 
       if (stateSort.length !== 0) {
         if (stateSort === "reccomend") {
-          sortOptions = "&sort=" + "-score";
+          sortOptions = "-score";
         } else if (stateSort === "popular") {
-          sortOptions = "&sort=" + "-review_count";
+          sortOptions = "-review_count";
         } else if (stateSort === "cheapest") {
-          sortOptions = "&sort=" + "%2B" + "price";
+          sortOptions = "+price";
         } else if (stateSort === "expensive") {
-          sortOptions = "&sort=-price";
+          sortOptions = "-price";
         }
       }
 
       const stateGenre = this.genre;
-      let sortGenre = "";
+      let sortGenre = null;
 
       if (stateGenre.length !== 0) {
-        sortGenre = "&genre_category_id=" + stateGenre;
+        sortGenre = stateGenre;
       }
-
+      let resultsNum = null;
       if (this.results !== 0) {
         this.productsPerPage = this.results;
-        this.options.push("&results=", String(this.results));
+        resultsNum = this.productsPerPage;
       }
       if (this.currentPageNum !== 1) {
-        this.goToNextPage;
+        this.goToNextPage();
+      } else if (this.currentPageNum === 1) {
+        this.start = 1;
       }
-      const formatOptions = this.options.join("");
-      const imageSize = "&image_size=300";
-      const appId = "dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-";
+      const { $axios } = useNuxtApp();
+      const config = useRuntimeConfig();
+
       try {
-        const response = await axios.get(
-          "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=" +
-            appId +
-            "&query=" +
-            this.inputValue +
-            imageSize +
-            sortGenre +
-            formatOptions +
-            sortOptions
-        );
+        // 通信先のHTTP以降を指定する
+        const response = await $axios.get("/ShoppingWebService/V3/itemSearch", {
+          //パラメータリクエスト
+          params: {
+            appid: config.public.YAHOO_API_APPID,
+            query: this.searchKeyword,
+            image_size: 300,
+            genre_category_id: sortGenre,
+            price_from: this.minPrice,
+            price_to: this.maxPrice,
+            results: resultsNum,
+            start: this.start,
+            sort: sortOptions,
+          },
+        });
         const payload = response.data;
+
         // 商品を表示させる
         this.showProductList(payload.hits);
         // 商品を取得したら、ページ数とヒット数を表示する
@@ -110,7 +144,7 @@ export const useIndexStore = defineStore("index", {
       }
     },
     /**
-     * 子カテゴリを探す
+     * yahoo-カテゴリを探す
      */
     async findCategoryDetail() {
       const categoryIds = [
@@ -118,13 +152,30 @@ export const useIndexStore = defineStore("index", {
         2503, 2509, 2510, 2497, 2512, 2514, 2516, 2517, 10002,
       ];
       const payload = [];
+      const { $axios } = useNuxtApp();
+      // すべてのカテゴリを取得する
       for (const categoryid of categoryIds) {
-        const response = await axios.get(
-          "https://shopping.yahooapis.jp/ShoppingWebService/V1/categorySearch?appid=dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-&category_id=" +
-            +categoryid +
-            "&output=json"
+        const config = useRuntimeConfig();
+        const response = await $axios.get(
+          "/ShoppingWebService/V1/categorySearch",
+          {
+            params: {
+              appid: config.public.YAHOO_API_APPID,
+              category_id: categoryid,
+              output: "json",
+            },
+          }
         );
-        payload.push(response.data.ResultSet[0].Result.Categories);
+
+        const currentCategory =
+          response.data.ResultSet["0"].Result.Categories.Current;
+        const childrenCategories =
+          response.data.ResultSet["0"].Result.Categories.Children;
+
+        payload.push({
+          currentCategory,
+          childrenCategories,
+        });
       }
       this.showYahooCategory(payload);
     },
@@ -133,73 +184,82 @@ export const useIndexStore = defineStore("index", {
      * @param context
      */
     async getRktProductList() {
+      const keyword = this.searchKeyword.replace(/　/g, " ");
       this.productList = [];
-      this.options = [];
       const stateSort = this.sort;
-      let sortOptions = "";
+      let sortOptions = null;
 
       if (stateSort.length !== 0) {
         if (stateSort === "reccomend") {
-          sortOptions = "&sort=" + "-reviewAverage";
+          sortOptions = "-reviewAverage";
         } else if (stateSort === "popular") {
-          sortOptions = "&sort=" + "-reviewCount";
+          sortOptions = "-reviewCount";
         } else if (stateSort === "cheapest") {
-          sortOptions = "&sort=" + "%2B" + "itemPrice";
+          sortOptions = "+itemPrice";
         } else if (stateSort === "expensive") {
-          sortOptions = "&sort=-itemPrice";
+          sortOptions = "-itemPrice";
         }
       }
 
       const stateGenre = this.genre;
-      let sortGenre = "";
+      let sortGenre = null;
 
       if (stateGenre.length !== 0) {
-        sortGenre = "&genreId=" + stateGenre;
+        sortGenre = stateGenre;
       }
 
       if (this.results !== 0) {
         this.productsPerPage = this.results;
-        this.options.push("&hits=", String(this.results));
       }
       if (this.currentPageNum !== 1) {
-        this.goToNextPage;
+        this.goToNextPage();
       }
-      const formatOptions = this.options.join("");
 
-      const appId = "1047939681842243304";
       try {
-        const response = await axios.get(
-          "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=" +
-            appId +
-            "&keyword=" +
-            this.inputValue +
-            sortGenre +
-            formatOptions +
-            sortOptions
+        const { $axiosRakuten } = useNuxtApp();
+        const config = useRuntimeConfig();
+
+        const response = await $axiosRakuten.get(
+          "/IchibaItem/Search/20170706",
+          {
+            params: {
+              applicationId: config.public.RAKUTEN_API_APPID,
+              keyword: keyword,
+              genreId: sortGenre,
+              sort: sortOptions,
+              hits: this.productsPerPage,
+              page: this.start,
+              minPrice: this.minPrice,
+              maxPrice: this.maxPrice,
+            },
+          }
         );
+
         const payload = response.data;
-        console.log("rakuten", payload);
-        this.showRktProductList(payload.Items);
-        this.handlePageNum(payload);
+
+        if (payload) {
+          this.showRktProductList(payload.Items);
+          this.handlePageNum(payload);
+        }
       } catch (err: any) {
         console.log(err);
       }
     },
     /**
-     * 子カテゴリを探す
+     * 楽天－すべてのカテゴリをfetchする
      */
     async findRktChildCategory() {
       const payload = [];
-      const appId = "1047939681842243304";
-
       const genreIds: number[] = [];
 
-      const parents = await axios.get(
-        "https://app.rakuten.co.jp/services/api/IchibaGenre/Search/20140222?applicationId=" +
-          appId +
-          "&genreId=" +
-          0
-      );
+      const { $axiosRakuten } = useNuxtApp();
+      const config = useRuntimeConfig();
+      const parents = await $axiosRakuten.get("/IchibaGenre/Search/20140222", {
+        params: {
+          applicationId: config.public.RAKUTEN_API_APPID,
+          genreId: 0,
+        },
+      });
 
       const parentsData = parents.data;
       const children = parentsData.children;
@@ -210,11 +270,14 @@ export const useIndexStore = defineStore("index", {
       }
 
       for (const genreId of genreIds) {
-        const response = await axios.get(
-          "https://app.rakuten.co.jp/services/api/IchibaGenre/Search/20140222?applicationId=" +
-            appId +
-            "&genreId=" +
-            genreId
+        const response = await $axiosRakuten.get(
+          "/IchibaGenre/Search/20140222",
+          {
+            params: {
+              applicationId: config.public.RAKUTEN_API_APPID,
+              genreId: genreId,
+            },
+          }
         );
         payload.push(response.data);
       }
@@ -222,11 +285,24 @@ export const useIndexStore = defineStore("index", {
       this.showRakutenChild(payload);
     },
     /**
-     * 速報を表示する
+     * dataの初期化
+     */
+    resetStoreData() {
+      this.totalPageNum = 0;
+      this.genre = "";
+      this.childGenre = [];
+      this.results = 20;
+      this.sort = "";
+      this.maxPrice = null;
+      this.minPrice = null;
+      this.currentPageNum = 1;
+    },
+    /**
+     * 速報をstateに保存する
      * @param state
      * @param payload
      */
-    async showNewArriveData(payload: commonProducts) {
+    async setNewArriveData(payload: commonProducts) {
       const newItem = payload;
 
       // 既に存在するアイテムかどうかをチェック
@@ -235,14 +311,59 @@ export const useIndexStore = defineStore("index", {
       );
 
       if (!isItemExist) {
-        // 配列のサイズを制限する（例：最大10件まで）
-        if (this.announceData.length >= this.announceSize) {
-          this.announceData.shift(); // 古いアイテムを削除
-        }
-
         this.announceData.push(payload);
+        this.handleAnnouncement();
       }
-      console.log(this.announceData);
+    },
+    /**
+     *　入荷情報で、表示用のデータを変更する
+     */
+    handleAnnouncement() {
+      if (window.innerWidth < 768) {
+        this.announceSize = 1;
+      } else {
+        this.announceSize = 3;
+      }
+      const start = this.currentIndex;
+      const end = start + this.announceSize;
+
+      const displayData = this.announceData.slice(start, end);
+      this.newAnnounceData = displayData;
+      if (this.currentIndex - this.announceSize < 0) {
+        this.leftCarousel = true;
+      } else {
+        this.leftCarousel = false;
+      }
+      if (
+        this.currentIndex + this.announceSize >
+        this.announceData.length - 1
+      ) {
+        this.rightCarousel = true;
+      } else {
+        this.rightCarousel = false;
+      }
+    },
+    /**
+     * 速報の表示‐次ページへ行く
+     * @returns
+     */
+    updateIndex() {
+      const allData = this.announceData.length;
+      if (this.currentIndex + this.announceSize < allData) {
+        this.currentIndex += this.announceSize;
+      } else {
+        return;
+      }
+    },
+    /**
+     * 速報の表示－前のページへ行く
+     */
+    backIndex() {
+      if (this.currentIndex - this.announceSize >= 0) {
+        this.currentIndex -= this.announceSize;
+      } else {
+        return;
+      }
     },
     /**
      * 速報用に、検索で１番新しいURLをセットする
@@ -262,8 +383,9 @@ export const useIndexStore = defineStore("index", {
       const payloadData =
         searchOption === "yahoo"
           ? {
+              userId: this.loginUser.id,
               searchOption: this.searchOption,
-              keyword: this.inputValue,
+              keyword: this.searchKeyword,
               name: payload.name,
               brand: payload.brand.name,
               genre: payload.genreCategory.name,
@@ -273,11 +395,12 @@ export const useIndexStore = defineStore("index", {
               lastHitUrl: this.lastHitUrl,
             }
           : {
+              userId: this.loginUser.id,
               searchOption: this.searchOption,
-              keyword: this.inputValue,
+              keyword: this.searchKeyword,
               name: payload.itemName,
               genreId: payload.genreId,
-              image: payload.itemUrl,
+              image: payload.mediumImageUrls[0].imageUrl,
               url: payload.itemUrl,
               lastHitUrl: this.lastHitUrl,
             };
@@ -294,38 +417,125 @@ export const useIndexStore = defineStore("index", {
       );
 
       if (!querySnapshot.empty) {
-        console.log("同じデータが既に存在します");
-        return;
+        return window.alert("同じデータが既に存在します");
       } else {
         // firebaseに送るメソッド
         const registerDataRef = db.collection("registerData");
         registerDataRef.doc().set(payloadData, { merge: true });
+        this.fetchRegisterData();
+        window.alert("商品を登録しました");
       }
     },
     /**
-     * 登録した商品をstateに保存する
+     * 登録した商品を取得する
      * @param state
      */
-    fetchRegisterData() {
-      const registerDataRef = db.collection("registerData");
+    async fetchRegisterData() {
+      if (!this.currentUser) {
+        const registerDataRef = db.collection("registerData");
+        const registerSnapshot = await registerDataRef.get();
 
-      // stateにセットする
-      registerDataRef.get().then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          this.registerData.push({
-            searchOption: data.searchOption,
-            keyword: data.keyword,
-            name: data.name,
-            image: data.image,
-            brand: data.brand,
-            genreId: data.genreId,
-            genre: data.genre,
-            url: data.url,
-            lastHitUrl: data.lastHitUrl,
-          });
+        // DBから1個1個取り出す
+        const items = registerSnapshot.docs.map((item) => {
+          const eachItem = item.data();
+
+          return {
+            searchOption: eachItem.searchOption,
+            keyword: eachItem.keyword,
+            name: eachItem.name,
+            image: eachItem.image,
+            brand: eachItem.brand,
+            genreId: eachItem.genreId,
+            genre: eachItem.genre,
+            url: eachItem.url,
+            lastHitUrl: eachItem.lastHitUrl,
+          };
         });
-      });
+
+        // stateにセットする
+        this.registerData = items;
+      } else {
+        try {
+          const registerDataRef = collection(db, "registerData");
+          // Firestore クエリを実行
+          const registerSnapshot = await getDocs(
+            query(registerDataRef, where("userId", "==", this.loginUser.id))
+          );
+
+          // DBから1個1個取り出す
+          const items = registerSnapshot.docs.map((item) => {
+            const eachItem = item.data();
+            return {
+              searchOption: eachItem.searchOption,
+              keyword: eachItem.keyword,
+              name: eachItem.name,
+              image: eachItem.image,
+              brand: eachItem.brand,
+              genreId: eachItem.genreId,
+              genre: eachItem.genre,
+              url: eachItem.url,
+              lastHitUrl: eachItem.lastHitUrl,
+            };
+          });
+
+          // stateにセットする
+          this.registerData = items;
+        } catch (error) {
+          console.error("Error fetching registered data:", error);
+        }
+      }
+    },
+    /**
+     * 登録商品の削除
+     * @param payload
+     */
+    async deleteRegisteredProduct(payload: any) {
+      // データの重複をチェック
+      const registerDataCollection = collection(db, "registerData");
+      const queryData = query(
+        registerDataCollection,
+        where("name", "==", payload.name),
+        where("genreId", "==", payload.genreId),
+        where("url", "==", payload.url)
+      );
+
+      const deleteData = await getDocs(queryData);
+      if (deleteData) {
+        // ドキュメントをループして削除
+        deleteData.forEach(async (documentSnapshot) => {
+          try {
+            await deleteDoc(doc(db, "registerData", documentSnapshot.id));
+            window.alert("商品を削除しました");
+          } catch (error) {
+            window.alert("Error removing document: " + error);
+          }
+        });
+        // stateの削除
+        const newRegisterData = this.registerData.filter(
+          (item) =>
+            item.name !== payload.name &&
+            item.genreId !== payload.genreId &&
+            item.url !== payload.url
+        );
+        this.registerData = newRegisterData;
+      } else {
+        return;
+      }
+    },
+    /**
+     * 商品説明を文字数制限する
+     * @param text
+     * @param maxLength
+     * @returns
+     */
+    truncateText(text: string | undefined | null, maxLength: number): string {
+      if (!text) {
+        return "";
+      }
+      if (text.length <= maxLength) {
+        return text;
+      }
+      return text.slice(0, maxLength) + "...";
     },
     /**
      * yahooの商品を表示するメソッド
@@ -334,41 +544,15 @@ export const useIndexStore = defineStore("index", {
      */
     showProductList(payload: any) {
       this.productList = new Array<apiProducts>();
-      for (const product of payload) {
-        this.productList.push(
-          new apiProducts(
-            product.index,
-            product.name,
-            product.description,
-            product.headLine,
-            product.url,
-            product.inStock,
-            product.code,
-            product.condition,
-            product.imageId,
-            product.image,
-            product.review,
-            product.offiliateRate,
-            product.price,
-            product.premiumPrice,
-            product.premiumPriceStatus,
-            product.premiumDiscountRate,
-            product.premiumDiscountType,
-            product.priceLabel,
-            product.point,
-            product.shipping,
-            product.genreCategory,
-            product.parentGenreCategories,
-            product.brand,
-            product.parentBrands,
-            product.janCode,
-            product.payment,
-            product.releaseDate,
-            product.seller,
-            product.delivery
-          )
-        );
+      if (this.reviewStar !== 0) {
+        payload = payload.filter((item: any) => {
+          return item.review.rate >= this.reviewStar;
+        });
       }
+      this.productList = payload.map((item: any) => ({
+        ...item,
+        truncatedDescription: this.truncateText(item.description, 100), // 文字数を制限する
+      }));
     },
     /**
      * yahooの子カテゴリを表示する
@@ -376,73 +560,34 @@ export const useIndexStore = defineStore("index", {
      * @param payload
      */
     showYahooCategory(payload: any) {
-      for (const category of payload) {
-        this.yCategory.push(
-          new CategoryDetail(
-            category.Current.Id,
-            category.Current.ParentId,
-            category.Current.Url,
-            category.Current.Title,
-            category.Current.Path,
-            category.Children
-          )
-        );
-      }
-      const currentCategory = this.yCategory;
-      const displayCategory = this.yahooCategory;
+      const displayCategory = [];
 
-      // カテゴリ（レベル１）の表示
-      for (const category of currentCategory) {
-        const categoryTitle = category.title;
-        const mappedTitle = categoryTitle.map((title) => title.short);
-        console.log(mappedTitle);
-
-        const displayTitle = mappedTitle[0];
+      for (const { currentCategory, childrenCategories } of payload) {
         displayCategory.push({
-          text: displayTitle,
-          value: category.id,
+          text: currentCategory.Title.Medium,
+          value: currentCategory.Id,
         });
-        // 子カテゴリの表示
-        const childrens = category.children;
-        const childLength = Number(Object.keys(childrens));
-        if (childLength > 0) {
-          for (const child of Object.keys(childrens)) {
-            const data = childrens[childLength];
-            if (data === undefined) {
-              continue;
-            }
-            const dataTitle = displayTitle;
 
-            displayCategory.push({
-              text: "-" + dataTitle,
-              value: data.id,
+        const selectedGenre = this.genre;
+        const currentGenreId = String(currentCategory.Id);
+        const displayChildCategory = [];
+
+        //  子カテゴリの表示
+        if (selectedGenre === currentGenreId) {
+          for (const key in childrenCategories) {
+            if (key === "_container") continue;
+            const child = childrenCategories[key];
+            displayChildCategory.push({
+              text: `- ${child.Title.Medium}`,
+              value: child.Id,
             });
           }
+          this.childGenre = displayChildCategory;
         }
-      }
-    },
-    /**
-     * 楽天の子カテゴリを表示する
-     * @param state
-     * @param payload
-     */
-    showRakutenChild(payload: any) {
-      const categories = payload;
-      const displayCategory = this.rktCategory;
 
-      for (const category of categories) {
-        const current = category.current;
-        displayCategory.push({
-          text: current.genreName, // プロパティ名に'?'は不要
-          value: current.genreId,
-        } as Category); // 型アサーションを使用
-
-        const children = category.children;
-        for (const child of children) {
-          displayCategory.push({
-            text: "―" + child.child.genreNam1e,
-            value: child.child.genreId,
-          } as Category); // 型アサーションを使用
+        if (this.yahooCategory.length < 1) {
+          // Vueのステートにカテゴリ情報を設定する
+          this.yahooCategory = displayCategory;
         }
       }
     },
@@ -453,46 +598,47 @@ export const useIndexStore = defineStore("index", {
      */
     showRktProductList(payload: any) {
       this.rktProductList = new Array<rktProducts>();
-      for (const rktProduct of payload) {
-        this.rktProductList.push(
-          new rktProducts(
-            rktProduct.Item.affiliateRate,
-            rktProduct.Item.affiliateUrl,
-            rktProduct.Item.asurakuArea,
-            rktProduct.Item.asurakuClosingTime,
-            rktProduct.Item.asurakuFlag,
-            rktProduct.Item.availability,
-            rktProduct.Item.catchcopy,
-            rktProduct.Item.creditCardFlag,
-            rktProduct.Item.endTime,
-            rktProduct.Item.genreId,
-            rktProduct.Item.giftFlag,
-            rktProduct.Item.imageFlag,
-            rktProduct.Item.itemCaption,
-            rktProduct.Item.itemCode,
-            rktProduct.Item.itemName,
-            rktProduct.Item.itemPrice,
-            rktProduct.Item.itemUrl,
-            rktProduct.Item.mediumImageUrls,
-            rktProduct.Item.pointRate,
-            rktProduct.Item.pointRateEndTime,
-            rktProduct.Item.pointRateStartTime,
-            rktProduct.Item.postageFlag,
-            rktProduct.Item.reviewAverage,
-            rktProduct.Item.reviewCount,
-            rktProduct.Item.shipOverseasArea,
-            rktProduct.Item.shipOverseasFlag,
-            rktProduct.Item.shopAffiliateUrl,
-            rktProduct.Item.shopCode,
-            rktProduct.Item.shopName,
-            rktProduct.Item.shopOfTheYearFlag,
-            rktProduct.Item.shopUrl,
-            rktProduct.Item.smallImageUrls,
-            rktProduct.Item.startTime,
-            rktProduct.Item.tagIds,
-            rktProduct.Item.taxFlag
-          )
-        );
+      this.rktProductList = payload.map((item: any) => ({
+        ...item.Item,
+        truncatedDescription: this.truncateText(item.Item.itemCaption, 100), // 文字数を制限する
+      }));
+      if (this.reviewStar !== 0) {
+        this.rktProductList = this.rktProductList.filter((item: any) => {
+          return item.reviewAverage >= this.reviewStar;
+        });
+      }
+    },
+    /**
+     * 楽天のカテゴリを表示する
+     * @param state
+     * @param payload
+     */
+    showRakutenChild(payload: any) {
+      const categories = payload;
+      const displayCategory = this.rktCategory;
+      const rktChildCategory = [];
+
+      for (const category of categories) {
+        const current = category.current;
+        displayCategory.push({
+          text: current.genreName, // プロパティ名に'?'は不要
+          value: current.genreId,
+        } as Category); // 型アサーションを使用
+
+        const currentGenreId = String(current.genreId);
+        const genreId = String(this.genre);
+
+        // 子カテゴリの表示
+        if (currentGenreId == genreId) {
+          const children = category.children;
+          for (const child of children) {
+            rktChildCategory.push({
+              text: "―" + child.child.genreName,
+              value: child.child.genreId,
+            } as Category); // 型アサーションを使用
+          }
+          this.childGenre = rktChildCategory;
+        }
       }
     },
     /**
@@ -510,6 +656,9 @@ export const useIndexStore = defineStore("index", {
         this.productsPerPage = totalResults;
         // 総ページ数
         this.totalPageNum = Math.ceil(this.totalProductsNum / totalResults);
+        if (this.totalPageNum >= 100) {
+          this.totalPageNum = 50;
+        }
       } else if (this.searchOption === "rakuten") {
         // 総商品数
         const rktTotalProduct = payload.count;
@@ -519,7 +668,9 @@ export const useIndexStore = defineStore("index", {
         this.productsPerPage = totalResults;
         // 総ページ数
         this.totalPageNum = Math.ceil(this.totalProductsNum / totalResults);
-        console.log("pageTotal", this.totalPageNum);
+        if (this.totalPageNum >= 100) {
+          this.totalPageNum = 50;
+        }
       } else {
         return;
       }
@@ -532,12 +683,12 @@ export const useIndexStore = defineStore("index", {
     goToNextPage() {
       if (this.searchOption === "yahoo") {
         let lastIndex = 0;
-        lastIndex = this.currentPageNum * this.results - 1;
+        lastIndex = (this.currentPageNum - 1) * this.results + 1;
+        console.log(lastIndex);
+
         this.start = lastIndex;
-        this.options.push("&start=", String(this.start));
-        console.log("start", this.start);
       } else if (this.searchOption === "rakuten") {
-        this.options.push("&page=", String(this.currentPageNum));
+        this.start = this.currentPageNum;
       }
     },
     /**
@@ -553,88 +704,190 @@ export const useIndexStore = defineStore("index", {
      * @param newId
      */
     sortGenre(payload: string) {
-      console.log(payload);
-
       this.currentPageNum = 1;
       this.genre = payload;
     },
-    getters: {
-      /**
-       * 登録した商品を取得する
-       * @param context
-       */
-      async getRegisteredProducts() {
-        this.stopSearchCount++;
+    /**
+     * 登録した商品を取得する
+     * @param context
+     */
+    async getRegisteredProducts() {
+      this.stopSearchCount++;
+      if (this.registerData.length === 0) {
+        console.log(
+          "商品データがゼロのため、ユーザーのログイン状態を確認します"
+        );
+        this.fetchUserStatus();
+        return;
+      }
 
-        // 検索を最大5回に制限
-        if (this.stopSearchCount > 5) {
-          return;
+      // 検索を最大5回に制限
+      if (this.stopSearchCount > 5) {
+        if (this.stopSearchCount === 5) {
+          window.alert("最大検索数に達しました。ページを更新してください。");
         }
+        return;
+      }
 
-        for (const registeredProduct of this.registerData) {
-          const searchOption = registeredProduct.searchOption;
-          let newUrl = "";
-          let nowData = null;
+      for (const registeredProduct of this.registerData) {
+        const searchOption = registeredProduct.searchOption;
+        let newUrl = "";
+        let nowData = null;
+        const searchKeyword = registeredProduct.keyword;
 
-          try {
-            if (searchOption === "yahoo") {
-              // Yahooのとき
-              const searchKeyword = registeredProduct.keyword;
-              const imageSize = "&image_size=300";
-              const sortGenre =
-                "&genre_category_id=" + registeredProduct.genreId;
-              const results = "&results=5";
-              const appId =
-                "dj00aiZpPUZjMGkxU0RBUnlodCZzPWNvbnN1bWVyc2VjcmV0Jng9YmE-";
+        try {
+          if (searchOption === "yahoo") {
+            // Yahooのとき
+            const { $axios } = useNuxtApp();
+            const config = useRuntimeConfig();
 
-              const response = await axios.get(
-                `https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=${appId}&query=${searchKeyword}${imageSize}${sortGenre}${results}`
-              );
+            const response = await $axios.get(
+              "/ShoppingWebService/V3/itemSearch",
+              {
+                params: {
+                  appid: config.public.YAHOO_API_APPID,
+                  query: searchKeyword,
+                  image_size: 300,
+                  genre_category_id: registeredProduct.genreId,
+                  results: 5,
+                },
+              }
+            );
+            nowData = response.data.hits[0];
+            newUrl = nowData.url;
+          } else if (searchOption === "rakuten") {
+            // 楽天のとき
+            const { $axiosRakuten } = useNuxtApp();
+            const config = useRuntimeConfig();
 
-              nowData = response.data.hits[0];
-              newUrl = nowData.url;
-            } else if (searchOption === "rakuten") {
-              // 楽天のとき
-              const rktAppId = "1047939681842243304";
-              const response = await axios.get(
-                `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=${rktAppId}&keyword=${registeredProduct.keyword}&genreId=${registeredProduct.genreId}`
-              );
+            const response = await $axiosRakuten.get(
+              "/IchibaItem/Search/20170706",
+              {
+                params: {
+                  applicationId: config.public.RAKUTEN_API_APPID,
+                  keyword: searchKeyword,
+                  genreId: registeredProduct.genreId,
+                },
+              }
+            );
 
-              nowData = response.data.Items[0].Item;
-              newUrl = nowData.itemUrl;
-            }
-
-            const registeredUrl = registeredProduct.url;
-
-            // 新しく取得したデータの先頭と、登録している商品のURLが違うときに速報に表示する
-            if (newUrl && newUrl !== registeredUrl) {
-              // 速報に表示する commit
-              const commonProduct =
-                searchOption === "yahoo"
-                  ? new commonProducts(
-                      nowData.name,
-                      nowData.url,
-                      nowData.image.medium,
-                      nowData.price,
-                      nowData.review.count,
-                      nowData.review.rate
-                    )
-                  : new commonProducts(
-                      nowData.itemName,
-                      nowData.itemUrl,
-                      nowData.mediumImageUrls[0],
-                      nowData.itemPrice,
-                      nowData.reviewCount,
-                      nowData.reviewAverage
-                    );
-
-              this.showNewArriveData(commonProduct);
-            }
-          } catch (err: any) {
-            console.error(`Error in getRegisteredProducts: ${err.message}`);
+            nowData = response.data.Items[0].Item;
+            newUrl = nowData.itemUrl;
           }
+
+          const registeredUrl = registeredProduct.url;
+
+          // 新しく取得したデータの先頭と、登録している商品のURLが違うときに速報に表示する
+          if (newUrl && newUrl !== registeredUrl) {
+            let rakutenImageUrl = "";
+            if (searchOption === "rakuten") {
+              const rakutenImageUrls = nowData.mediumImageUrls;
+              rakutenImageUrl = rakutenImageUrls[0].imageUrl;
+            }
+            // 速報に表示する commit
+            const commonProduct =
+              searchOption === "yahoo"
+                ? new commonProducts(
+                    nowData.name,
+                    nowData.url,
+                    nowData.image.medium,
+                    nowData.price,
+                    nowData.review.count,
+                    nowData.review.rate
+                  )
+                : new commonProducts(
+                    nowData.itemName,
+                    nowData.itemUrl,
+                    rakutenImageUrl,
+                    nowData.itemPrice,
+                    nowData.reviewCount,
+                    nowData.reviewAverage
+                  );
+
+            this.setNewArriveData(commonProduct);
+          }
+        } catch (err: any) {
+          window.alert(`Error in getRegisteredProducts: ${err.message}`);
         }
-      },
+      }
+    },
+    /**
+     * ユーザーの新規登録
+     * @param uid
+     * @param mailAddress
+     * @param password
+     */
+    async setUserInfo(uid: string, mailAddress: string) {
+      const initialData = {
+        id: uid,
+        name: "",
+        mailAddress: mailAddress,
+      };
+      // stateに保存
+      this.loginUser = {
+        id: uid,
+        name: "",
+        mailAddress: mailAddress,
+      };
+      // firestoreに保存
+      await db
+        .collection("userInformation")
+        .doc(uid)
+        .set(initialData)
+        .then(() => {
+          window.alert("ユーザー登録しました");
+        });
+    },
+    /**
+     * ログイン状態を取得
+     */
+    async fetchUserStatus() {
+      // ログイン状況を確認し、stateにセットする
+      const authedUser = auth.currentUser;
+      if (authedUser) {
+        this.currentUser = true;
+      } else {
+        this.currentUser = false;
+      }
+      onAuthStateChanged(auth, (user: any) => {
+        if (user) {
+          this.loginUser = {
+            id: user.uid,
+            name: "",
+            mailAddress: user.email,
+          };
+          this.loginStatus = true;
+        } else {
+          this.loginUser = {
+            id: "",
+            name: "",
+            mailAddress: "",
+          };
+          this.loginStatus = false;
+        }
+      });
+    },
+    /**
+     * ログアウト
+     */
+    async logout() {
+      await signOut(auth)
+        .then(() => {
+          this.loginUser = {
+            id: "",
+            name: "",
+            mailAddress: "",
+          };
+          this.announceData = [];
+          this.loginStatus = false;
+          this.currentUser = false;
+          reloadNuxtApp();
+          window.alert("ログアウトしました");
+        })
+        .catch((error) => {
+          window.alert(error.message);
+        });
     },
   },
+  getters: {},
 });
