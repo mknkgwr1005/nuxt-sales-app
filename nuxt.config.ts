@@ -38,4 +38,9 @@ export default defineNuxtConfig({
       RAKUTEN_API_APPID: process.env.RAKUTEN_API_APPID,
     },
   },
+  nitro: {
+    prerender: {
+      routes: ["/"],
+    },
+  },
 });
