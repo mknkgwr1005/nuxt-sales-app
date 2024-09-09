@@ -1,9 +1,11 @@
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
   getDocs,
   query,
+  setDoc,
   where,
 } from "firebase/firestore";
 import { defineStore } from "pinia";
@@ -420,10 +422,10 @@ export const useIndexStore = defineStore("index", {
         return window.alert("同じデータが既に存在します");
       } else {
         // firebaseに送るメソッド
-        const registerDataRef = db.collection("registerData");
-        registerDataRef.doc().set(payloadData, { merge: true });
+        const registerDataRef = collection(db, "registerData");
+        await addDoc(registerDataRef, payloadData);
+        window.alert("Product registered successfully.");
         this.fetchRegisterData();
-        window.alert("商品を登録しました");
       }
     },
     /**
@@ -432,28 +434,7 @@ export const useIndexStore = defineStore("index", {
      */
     async fetchRegisterData() {
       if (!this.currentUser) {
-        const registerDataRef = db.collection("registerData");
-        const registerSnapshot = await registerDataRef.get();
-
-        // DBから1個1個取り出す
-        const items = registerSnapshot.docs.map((item) => {
-          const eachItem = item.data();
-
-          return {
-            searchOption: eachItem.searchOption,
-            keyword: eachItem.keyword,
-            name: eachItem.name,
-            image: eachItem.image,
-            brand: eachItem.brand,
-            genreId: eachItem.genreId,
-            genre: eachItem.genre,
-            url: eachItem.url,
-            lastHitUrl: eachItem.lastHitUrl,
-          };
-        });
-
-        // stateにセットする
-        this.registerData = items;
+        window.alert("ログインしてください。");
       } else {
         try {
           const registerDataRef = collection(db, "registerData");
@@ -830,13 +811,14 @@ export const useIndexStore = defineStore("index", {
         mailAddress: mailAddress,
       };
       // firestoreに保存
-      await db
-        .collection("userInformation")
-        .doc(uid)
-        .set(initialData)
-        .then(() => {
-          window.alert("ユーザー登録しました");
-        });
+      try {
+        const userDocRef = doc(db, "userInformation", uid); // ドキュメント参照を取得
+        await setDoc(userDocRef, initialData); // ドキュメントにデータをセット
+        window.alert("ユーザー登録しました");
+      } catch (error) {
+        console.error("Error saving user information: ", error);
+        window.alert("ユーザー登録に失敗しました");
+      }
     },
     /**
      * ログイン状態を取得

@@ -36,6 +36,13 @@ export default defineNuxtConfig({
     public: {
       YAHOO_API_APPID: process.env.YAHOO_API_APPID,
       RAKUTEN_API_APPID: process.env.RAKUTEN_API_APPID,
+      FIREBASE_APP_KEY: process.env.FIREBASE_APP_KEY,
+      FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
+      FIREBASE_PROJECTID: process.env.FIREBASE_PROJECTID,
+      FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
+      MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
+      FIREBASE_APPID: process.env.FIREBASE_APPID,
+      MEASUREMENT_ID: process.env.MEASUREMENT_ID,
     },
   },
   nitro: {
