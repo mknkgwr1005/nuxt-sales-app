@@ -22,11 +22,6 @@
             >
           </v-list>
         </v-menu>
-        <v-btn icon @click="searchBar = !searchBar">
-          <v-icon v-if="!searchBar">mdi-magnify</v-icon>
-          <v-icon v-if="searchBar">mdi-close</v-icon>
-        </v-btn>
-        <MobileSearchBar v-if="searchBar" />
       </v-app-bar>
 
       <!-- Tabs for larger screens -->

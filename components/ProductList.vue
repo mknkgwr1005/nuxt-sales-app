@@ -13,7 +13,7 @@
       </v-col>
     </v-row>
     <!-- 検索バー -->
-    <v-row v-if="!isMobile" align="center" justify="center" class="text-center">
+    <v-row align="center" justify="center" class="text-center">
       <v-col cols="12">
         <SearchBar />
       </v-col>
