@@ -34,6 +34,7 @@ export default defineNuxtConfig({
   // envファイルを使うように設定
   runtimeConfig: {
     public: {
+      API_BASE_URL: process.env.API_BASE_URL || "/api",
       YAHOO_API_APPID: process.env.YAHOO_API_APPID,
       RAKUTEN_API_APPID: process.env.RAKUTEN_API_APPID,
       FIREBASE_APP_KEY: process.env.FIREBASE_APP_KEY,
