@@ -26,3 +26,4 @@ logs
 #firebase
 # firebase/
 # plugins/firebase.ts
+.vercel

@@ -1,9 +1,11 @@
 import axios from "axios";
-//リクエストURLを指定する この場合はlocalhostのあとに、
-// /api/をつけてあとはconfigにあるURLを追加する
+
 export default defineNuxtPlugin((nuxtApp) => {
+  const config = useRuntimeConfig();
+
   const instance = axios.create({
-    baseURL: "/api",
+    baseURL: (config.public.API_BASE_URL as string) || "/api/",
   });
+
   nuxtApp.provide("axios", instance);
 });
