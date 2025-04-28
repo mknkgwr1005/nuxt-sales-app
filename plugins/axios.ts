@@ -4,7 +4,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
 
   const instance = axios.create({
-    baseURL: (config.public.API_BASE_URL as string) || "/api/",
+    baseURL: "/api/", // 無条件で "/api/" にする
   });
 
   nuxtApp.provide("axios", instance);

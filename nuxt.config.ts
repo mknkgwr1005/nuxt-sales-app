@@ -1,14 +1,31 @@
+// nuxt.config.ts
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 export default defineNuxtConfig({
+  app: {
+    baseURL: "/", // 必須
+  },
+  nitro: {
+    preset: "vercel", // ← []ではなく、stringで "vercel" と書くのが正しい
+    prerender: {
+      routes: ["/"],
+    },
+  },
   build: {
     transpile: ["vuetify"],
+  },
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        moduleResolution: "node",
+      },
+    },
   },
   modules: [
     "@pinia/nuxt",
     (_options, nuxt) => {
       nuxt.hooks.hook("vite:extendConfig", (config) => {
-        // @ts-expect-error
+        config.plugins = config.plugins || [];
         config.plugins.push(vuetify({ autoImport: true }));
       });
     },
@@ -19,19 +36,17 @@ export default defineNuxtConfig({
         transformAssetUrls,
       },
     },
-    // プロキシ設定
     server: {
       proxy: {
         "/api/": {
-          target: "https://shopping.yahooapis.jp", //通信先
+          target: "https://shopping.yahooapis.jp",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ""), //リクエストURLを上書きする
+          rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },
     },
   },
   devtools: { enabled: true },
-  // envファイルを使うように設定
   runtimeConfig: {
     public: {
       YAHOO_API_APPID: process.env.YAHOO_API_APPID,
@@ -43,11 +58,6 @@ export default defineNuxtConfig({
       MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
       FIREBASE_APPID: process.env.FIREBASE_APPID,
       MEASUREMENT_ID: process.env.MEASUREMENT_ID,
-    },
-  },
-  nitro: {
-    prerender: {
-      routes: ["/"],
     },
   },
 });
