@@ -7,9 +7,6 @@ export default defineNuxtConfig({
   },
   nitro: {
     preset: "vercel", // ← []ではなく、stringで "vercel" と書くのが正しい
-    prerender: {
-      routes: ["/"],
-    },
   },
   build: {
     transpile: ["vuetify"],
@@ -34,15 +31,6 @@ export default defineNuxtConfig({
     vue: {
       template: {
         transformAssetUrls,
-      },
-    },
-    server: {
-      proxy: {
-        "/api/": {
-          target: "https://shopping.yahooapis.jp",
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ""),
-        },
       },
     },
   },

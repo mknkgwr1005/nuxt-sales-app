@@ -1,11 +1,9 @@
 import axios from "axios";
-
+// plugins/axios.ts
 export default defineNuxtPlugin((nuxtApp) => {
-  const config = useRuntimeConfig();
-
-  const instance = axios.create({
-    baseURL: "/api/", // 無条件で "/api/" にする
+  const axiosInstance = axios.create({
+    baseURL: "https://shopping.yahooapis.jp/",
   });
 
-  nuxtApp.provide("axios", instance);
+  nuxtApp.provide("axios", axiosInstance);
 });

@@ -116,70 +116,65 @@ export const useIndexStore = defineStore("index", {
       } else if (this.currentPageNum === 1) {
         this.start = 1;
       }
-      const { $axios } = useNuxtApp();
-      const config = useRuntimeConfig();
 
-      try {
-        // 通信先のHTTP以降を指定する
-        const response = await $axios.get("/ShoppingWebService/V3/itemSearch", {
-          //パラメータリクエスト
-          params: {
-            appid: config.public.YAHOO_API_APPID,
-            query: this.searchKeyword,
-            image_size: 300,
-            genre_category_id: sortGenre,
-            price_from: this.minPrice,
-            price_to: this.maxPrice,
-            results: resultsNum,
-            start: this.start,
-            sort: sortOptions,
-          },
-        });
-        const payload = response.data;
+      const { data, error, pending } = await useFetch("/api/yahoo", {
+        method: "GET",
+        query: {
+          query: this.searchKeyword,
+          image_size: 300,
+          genre_category_id: sortGenre,
+          price_from: this.minPrice,
+          price_to: this.maxPrice,
+          results: resultsNum,
+          start: this.start,
+          sort: this.sort,
+        },
+        headers: { "Content-Type": "application/json" },
+      });
 
-        // 商品を表示させる
-        this.showProductList(payload.hits);
-        // 商品を取得したら、ページ数とヒット数を表示する
-        this.handlePageNum(payload);
-      } catch (err: any) {
-        console.log(err.message);
+      if (error.value) {
+        console.error("Yahoo 検索 API エラー:", error.value);
+        return;
+      }
+
+      if (!pending.value && data.value) {
+        // 商品一覧
+        const hits = data.value.hits;
+        this.showProductList(hits);
+        // ページング情報
+        this.handlePageNum(data.value);
       }
     },
     /**
      * yahoo-カテゴリを探す
      */
     async findCategoryDetail() {
-      const categoryIds = [
-        13457, 2498, 2505, 2511, 2513, 2501, 2500, 2502, 2504, 2506, 2507, 2508,
-        2503, 2509, 2510, 2497, 2512, 2514, 2516, 2517, 10002,
-      ];
-      const payload = [];
-      const { $axios } = useNuxtApp();
-      // すべてのカテゴリを取得する
-      for (const categoryid of categoryIds) {
-        const config = useRuntimeConfig();
-        const response = await $axios.get(
-          "/ShoppingWebService/V1/categorySearch",
-          {
-            params: {
-              appid: config.public.YAHOO_API_APPID,
-              category_id: categoryid,
-              output: "json",
-            },
-          }
-        );
+      // サーバーサイドのプロキシ API を呼ぶ
+      const { data, error } = await useFetch("/api/yahoo-category");
 
-        const currentCategory =
-          response.data.ResultSet["0"].Result.Categories.Current;
-        const childrenCategories =
-          response.data.ResultSet["0"].Result.Categories.Children;
-
-        payload.push({
-          currentCategory,
-          childrenCategories,
-        });
+      if (error.value) {
+        console.error("カテゴリ取得失敗:", error.value);
+        return;
       }
-      this.showYahooCategory(payload);
+
+      // data.value は server/api/yahoo-category.ts の return 値
+      this.showYahooCategory(data.value);
+    },
+    /**
+     * カテゴリの表示
+     * @param payload カテゴリのresponse値
+     */
+    showYahooCategory(payload: any[]) {
+      // 既存ロジックそのまま
+      const display: Array<{ text: string; value: number }> = [];
+      payload.forEach(({ currentCategory, childrenCategories }) => {
+        display.push({
+          text: currentCategory.Title.Medium,
+          value: currentCategory.Id,
+        });
+      });
+      this.yahooCategory = display;
+      // 必要なら childrenCategories の整形も同様に行ってください
     },
     /**
      * 楽天の商品を取得する
@@ -665,7 +660,6 @@ export const useIndexStore = defineStore("index", {
       if (this.searchOption === "yahoo") {
         let lastIndex = 0;
         lastIndex = (this.currentPageNum - 1) * this.results + 1;
-        console.log(lastIndex);
 
         this.start = lastIndex;
       } else if (this.searchOption === "rakuten") {
@@ -718,24 +712,34 @@ export const useIndexStore = defineStore("index", {
 
         try {
           if (searchOption === "yahoo") {
-            // Yahooのとき
-            const { $axios } = useNuxtApp();
-            const config = useRuntimeConfig();
+            // Yahooのとき    // サーバーサイドプロキシ API を呼び出し
+            const { data, error, pending } = await useFetch("/api/yahoo", {
+              method: "GET",
+              query: {
+                query: searchKeyword,
+                image_size: 300,
+                genre_category_id: registeredProduct.genreId,
+                results: 5,
+              },
+            });
 
-            const response = await $axios.get(
-              "/ShoppingWebService/V3/itemSearch",
-              {
-                params: {
-                  appid: config.public.YAHOO_API_APPID,
-                  query: searchKeyword,
-                  image_size: 300,
-                  genre_category_id: registeredProduct.genreId,
-                  results: 5,
-                },
-              }
-            );
-            nowData = response.data.hits[0];
-            newUrl = nowData.url;
+            if (error.value) {
+              console.error("Yahoo 登録商品チェック API エラー:", error.value);
+              return;
+            }
+            // pending.value が false になるまで待つ
+            while (pending.value) {
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+
+            const hits = data.value?.hits;
+            if (Array.isArray(hits) && hits.length > 0) {
+              const nowData = hits[0];
+              newUrl = nowData.url;
+            } else {
+              console.warn("ヒットなし or 想定外のレスポンス:", data.value);
+              return;
+            }
           } else if (searchOption === "rakuten") {
             // 楽天のとき
             const { $axiosRakuten } = useNuxtApp();

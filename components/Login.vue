@@ -46,7 +46,6 @@ const emit = defineEmits<{
 }>();
 
 const changePage = () => {
-  console.log("method has been executed");
   emit("update:tab", "Register");
 };
 

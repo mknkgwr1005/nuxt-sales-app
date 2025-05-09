@@ -60,7 +60,6 @@ watch(
   () => store.searchOption,
   (newVal: string) => {
     if (newVal) {
-      console.log("changed!" + newVal);
       store.resetStoreData();
     }
   }

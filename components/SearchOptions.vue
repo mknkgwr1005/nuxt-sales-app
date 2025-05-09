@@ -187,7 +187,6 @@ const updateReviewStar = (value: number) => {
 
 const sortGenre = () => {
   store.setFilterOn();
-  console.log(store.searchKeyword);
 
   useSearchProducts();
 };
@@ -197,7 +196,6 @@ watch(
   () => store.results,
   (val: number) => {
     if (val) {
-      console.log(val);
       store.currentPageNum = 1;
     }
   }

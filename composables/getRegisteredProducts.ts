@@ -16,7 +16,6 @@ export const useSearchRegisteredProducts = () => {
    * APIで商品を検索する
    */
   const getProduct = async () => {
-    console.log("Getting registered products");
     await store.getRegisteredProducts();
   };
 
@@ -51,7 +50,6 @@ export const useSearchRegisteredProducts = () => {
   });
 
   onUnmounted(() => {
-    console.log("Component unmounted");
     stopSearchRegisteredProducts();
   });
 
